@@ -39,4 +39,5 @@ cmake-build-debug
 build
 CMakeFiles
 CMakeCache.txt
+Makefile
 
