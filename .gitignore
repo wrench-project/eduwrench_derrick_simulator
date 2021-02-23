@@ -41,3 +41,5 @@ CMakeFiles
 CMakeCache.txt
 Makefile
 
+# Mac stuff
+.DS_Store
