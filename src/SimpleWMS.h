@@ -24,12 +24,10 @@ public:
               const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
               const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
               const std::string &hostname);
-
-private:
-    int main() override;
-
     /** @brief The job manager */
     std::shared_ptr<wrench::JobManager> job_manager;
+private:
+    int main() override;
 };
 
 #endif //MY_SIMPLEWMS_H

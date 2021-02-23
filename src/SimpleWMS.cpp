@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "SimpleWMS.h"
+#include "SimpleStandardJobScheduler.h"
 
 XBT_LOG_NEW_DEFAULT_CATEGORY(simple_wms, "Log category for Simple WMS");
 
@@ -59,8 +60,19 @@ int SimpleWMS::main() {
       break;
     }
 
+    // Get the available storage services
+    auto storage_services = this->getAvailableStorageServices();
+
+    if (storage_services.empty()) {
+        WRENCH_INFO("Aborting - No storage services available!");
+        break;
+    }
+
+    SimpleStandardJobScheduler* js = new SimpleStandardJobScheduler(*storage_services.begin());
+    js->setWMS(this);
     // Run ready tasks with defined scheduler implementation
-    this->getStandardJobScheduler()->scheduleTasks(this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
+    js->scheduleTasks(
+            this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
 
     // Wait for a workflow execution event, and process it
     try {

@@ -11,8 +11,16 @@
 
 XBT_LOG_NEW_DEFAULT_CATEGORY(simple_scheduler, "Log category for Simple Scheduler");
 
+SimpleWMS* SimpleStandardJobScheduler::getWMS() {
+    return this->wms;
+}
+
+void SimpleStandardJobScheduler::setWMS(SimpleWMS *wms) {
+    this->wms = wms;
+}
+
 /**
- * @brief Schedule and run a set of ready tasks on available cloud resources
+ * @brief Schedule and run a set of ready tasks on available bare metal resources
  *
  * @param compute_services: a set of compute services available to run jobs
  * @param tasks: a map of (ready) workflow tasks
@@ -22,79 +30,40 @@ XBT_LOG_NEW_DEFAULT_CATEGORY(simple_scheduler, "Log category for Simple Schedule
 void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
                                                const std::vector<wrench::WorkflowTask *> &tasks) {
 
-  // Check that the right compute_services is passed
-  if (compute_services.size() != 1) {
-    throw std::runtime_error("This example Simple Scheduler requires a single compute service");
-  }
+    // Check that the right compute_services is passed
+    if (compute_services.size() != 1) {
+        throw std::runtime_error("This example Simple Scheduler requires a single compute service");
+    }
 
-  auto compute_service = *compute_services.begin();
-std::shared_ptr<wrench::CloudComputeService> cloud_service;
-if (not(cloud_service = std::dynamic_pointer_cast<wrench::CloudComputeService>(compute_service))) {
-    throw std::runtime_error("This example Cloud Scheduler can only handle a cloud service");
-}
-for (auto task : tasks) {
+    auto compute_service = *compute_services.begin();
+    // check for bare metal service
+    std::shared_ptr<wrench::BareMetalComputeService> baremetal_service;
+    if (not(baremetal_service = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(compute_service))) {
+        throw std::runtime_error("This Scheduler can only handle a bare metal service");
+    }
 
-   WRENCH_INFO("Trying to schedule ready task %s on a currently running VM", task->getID().c_str());
+    auto storage_service = this->default_storage_service;
 
-   // Try to run the task on one of compute services running on previously created VMs
-   std::shared_ptr<wrench::BareMetalComputeService> picked_vm_cs = nullptr;
-   for (auto const &vm_cs : this->compute_services_running_on_vms) {
-       unsigned long num_idle_cores;
-       try {
-           num_idle_cores = vm_cs->getTotalNumIdleCores();
-       } catch (wrench::WorkflowExecutionException &e) {
-           // The service has some problem
-           throw std::runtime_error("Unable to get the number of idle cores: " + e.getCause()->toString());
-       }
-       if (task->getMinNumCores() <= num_idle_cores) {
-           picked_vm_cs = vm_cs;
-           break;       }
-   }
+    while (not this->getWMS()->getWorkflow()->isDone()) {
+        /* Get one ready task */
+        auto ready_task = this->getWMS()->getWorkflow()->getReadyTasks().at(0);
 
-   // If no current running compute service on a VM can accommodate the task, try
-   // to create a new one
-   if (picked_vm_cs == nullptr) {
-       WRENCH_INFO("No currently VM can support task %s, trying to create one...", task->getID().c_str());
-       unsigned long num_idle_cores;       try {
-           num_idle_cores = cloud_service->getTotalNumIdleCores();
-       } catch (wrench::WorkflowExecutionException &e) {
-           // The service has some problem
-           throw std::runtime_error("Unable to get the number of idle cores: " + e.getCause()->toString());       }
-       if (num_idle_cores >= task->getMinNumCores()) {
-           // Create and start the best VM possible for this task
-           try {
-               WRENCH_INFO("Creating a VM with %ld cores", std::min(task->getMinNumCores(), num_idle_cores));
-               auto vm = cloud_service->createVM(std::min(task->getMinNumCores(), num_idle_cores),
-                   task->getMemoryRequirement());
-               picked_vm_cs = cloud_service->startVM(vm);
-               this->compute_services_running_on_vms.push_back(picked_vm_cs);
-           } catch (wrench::WorkflowExecutionException &e) {
-               throw std::runtime_error("Unable to create/start a VM: " + e.getCause()->toString());
-           }
-       } else {
-           WRENCH_INFO("Not enough idle cores on the CloudComputeService to create a big enough VM for task %s", task->getID().c_str());
-       }
-   }
+        /* Create a standard job for the task */
+        WRENCH_INFO("Creating a job for task %s", ready_task->getID().c_str());
 
-   // If no VM is available to run the task, then nevermind
-   if (picked_vm_cs == nullptr) {
-       continue;
-   }
+        /* First, we need to create a map of file locations, stating for each file
+         * where is should be read/written */
+        std::map<wrench::WorkflowFile *, std::shared_ptr<wrench::FileLocation>> file_locations;
+        file_locations[ready_task->getInputFiles().at(0)] = wrench::FileLocation::LOCATION(storage_service);
+        file_locations[ready_task->getOutputFiles().at(0)] = wrench::FileLocation::LOCATION(storage_service);
 
-   WRENCH_INFO("Submitting task %s for execution on a VM", task->getID().c_str());
+        /* Create the job  */
+        auto standard_job = this->getWMS()->job_manager->createStandardJob(ready_task, file_locations);
 
-   // Submitting the task
-   std::map<wrench::WorkflowFile *, std::shared_ptr<wrench::FileLocation>> file_locations;
-   for (auto f : task->getInputFiles()) {
-       file_locations.insert(std::make_pair(f, wrench::FileLocation::LOCATION(default_storage_service)));
-   }
-   for (auto f : task->getOutputFiles()) {
-       file_locations.insert(std::make_pair(f, wrench::FileLocation::LOCATION(default_storage_service)));
-   }
-   auto job = this->getJobManager()->createStandardJob(task, file_locations);
-   this->getJobManager()->submitJob(job, picked_vm_cs);
-
-}
-  WRENCH_INFO("Done with scheduling tasks as standard jobs");
+        /* Submit the job to the compute service */
+        WRENCH_INFO("Submitting the job to the compute service");
+        this->getWMS()->job_manager->submitJob(standard_job, compute_service);
+    }
+    WRENCH_INFO("Done with scheduling tasks as standard jobs");
 }
 
