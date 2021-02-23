@@ -35,49 +35,50 @@ int main(int argc, char **argv) {
     // The second argument is the number of cores per compute node
     int cores = atoi(argv[2]);
 
+
     // platform description file, written in XML following the SimGrid-defined DTD
-    std::string xml = "<?xml version='1.0'?>"
-                      "<!DOCTYPE platform SYSTEM \"http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd\">"
-                      "<platform version=\"4.1\"> "
-                      "   <zone id=\"AS0\" routing=\"Full\"> ";
+    std::string xml = "<?xml version='1.0'?>\n"
+                      "<!DOCTYPE platform SYSTEM \"http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd\">\n"
+                      "<platform version=\"4.1\">\n"
+                      "   <zone id=\"AS0\" routing=\"Full\">\n";
                       for (int i = 1; i < num_hosts + 1; i++) {
                           xml.append("       <host id=\"compute_host_" + std::to_string(i)
-                          + "\" speed=\"1f\" core=\"" + std::to_string(cores) + "\"/> ");
+                          + "\" speed=\"1f\" core=\"" + std::to_string(cores) + "\"/> \n");
                       }
 
                       // links between each compute host and storage host (1 to hosts)
                       for (int i = 1; i < num_hosts + 1; i++) {
                           xml.append("       <link id=\"" + std::to_string(i)
-                          + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>");
+                          + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
                       }
                       // links between WMS Host and Storage host and first compute host
                       xml.append("       <link id=\"" + std::to_string(num_hosts + 1)
-                      + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>");
+                      + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
                       xml.append("       <link id=\"" + std::to_string(num_hosts + 2)
-                      + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>");
+                      + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
 
                       // routes between each compute host and storage host (1 to hosts)
                       for (int i = 1; i < num_hosts + 1; i++) {
                           xml.append("       <route src=\"compute_host_" + std::to_string(i) +
-                          "\" dst=\"storage_host\"> <link_ctn id=\"" + std::to_string(i) + "\"/> </route>");
+                          "\" dst=\"storage_host\"> <link_ctn id=\"" + std::to_string(i) + "\"/> </route>\n");
                       }
                       // routes between WMS Host and Storage host and first compute host
                       xml.append("       <route src=\"WMSHost\" dst=\"storage_host\"> "
-                                 "<link_ctn id=\"" + std::to_string(num_hosts + 1) + "\"/> </route>");
+                                 "<link_ctn id=\"" + std::to_string(num_hosts + 1) + "\"/> </route>\n");
                       xml.append("       <route src=\"WMSHost\" dst=\"compute_host_1\"> "
-                                 "<link_ctn id=\"" + std::to_string(num_hosts + 2) + "\"/> </route>");
+                                 "<link_ctn id=\"" + std::to_string(num_hosts + 2) + "\"/> </route>\n");
 
                       xml.append(
-                      "   </zone> "
-                      "</platform>");
+                      "   </zone>\n"
+                      "</platform>\n");
 
-    char* platform_file = "/tmp/hosts.xml";
-    FILE *xml_file = fopen(platform_file, "w");
+    std::string platform_file = "/tmp/hosts.xml";
+    auto xml_file = fopen(platform_file.c_str(), "w");
     fprintf(xml_file, "%s", xml.c_str());
     fclose(xml_file);
 
     // The third argument is the workflow description file, written in XML using the DAX DTD
-    char *workflow_file = argv[4];
+    char *workflow_file = argv[3];
 
     // Reading and parsing the workflow description file to create a wrench::Workflow object
     std::cerr << "Loading workflow..." << std::endl;
