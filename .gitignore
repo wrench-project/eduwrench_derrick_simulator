@@ -33,3 +33,10 @@
 
 # editor
 *.idea
+
+# cmake stuff
+cmake-build-debug
+build
+CMakeFiles
+CMakeCache.txt
+
