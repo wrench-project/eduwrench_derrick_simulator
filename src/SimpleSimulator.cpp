@@ -40,33 +40,41 @@ int main(int argc, char **argv) {
     std::string xml = "<?xml version='1.0'?>\n"
                       "<!DOCTYPE platform SYSTEM \"http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd\">\n"
                       "<platform version=\"4.1\">\n"
-                      "   <zone id=\"AS0\" routing=\"Full\">\n";
+                      "   <zone id=\"AS0\" routing=\"Full\">\n"
+                      "       <host id=\"WMSHost\" speed=\"1f\" core=\"1\"/>\n"
+                      "       <host id=\"storage_host\" speed=\"1f\" core=\"1\">\n"
+                      "           <disk id=\"hard_drive\" read_bw=\"100MBps\" write_bw=\"100MBps\">\n"
+                      "               <prop id=\"size\" value=\"5000GiB\"/>\n"
+                      "               <prop id=\"mount\" value=\"/\"/>\n"
+                      "           </disk>\n"
+                      "       </host>\n";
+
                       for (int i = 1; i < num_hosts + 1; i++) {
                           xml.append("       <host id=\"compute_host_" + std::to_string(i)
-                          + "\" speed=\"1f\" core=\"" + std::to_string(cores) + "\"/> \n");
+                          + "\" speed=\"1f\" core=\"" + std::to_string(cores) + "\"/>\n");
                       }
+                      xml.append("\n");
 
                       // links between each compute host and storage host (1 to hosts)
                       for (int i = 1; i < num_hosts + 1; i++) {
                           xml.append("       <link id=\"" + std::to_string(i)
                           + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
                       }
-                      // links between WMS Host and Storage host and first compute host
+
+                      // links between WMS Host and Storage host
                       xml.append("       <link id=\"" + std::to_string(num_hosts + 1)
                       + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
-                      xml.append("       <link id=\"" + std::to_string(num_hosts + 2)
-                      + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
+                      xml.append("\n");
 
                       // routes between each compute host and storage host (1 to hosts)
                       for (int i = 1; i < num_hosts + 1; i++) {
                           xml.append("       <route src=\"compute_host_" + std::to_string(i) +
                           "\" dst=\"storage_host\"> <link_ctn id=\"" + std::to_string(i) + "\"/> </route>\n");
                       }
-                      // routes between WMS Host and Storage host and first compute host
+                      // routes between WMS Host and Storage host
                       xml.append("       <route src=\"WMSHost\" dst=\"storage_host\"> "
                                  "<link_ctn id=\"" + std::to_string(num_hosts + 1) + "\"/> </route>\n");
-                      xml.append("       <route src=\"WMSHost\" dst=\"compute_host_1\"> "
-                                 "<link_ctn id=\"" + std::to_string(num_hosts + 2) + "\"/> </route>\n");
+                      xml.append("\n");
 
                       xml.append(
                       "   </zone>\n"
