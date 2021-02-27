@@ -68,12 +68,15 @@ int SimpleWMS::main() {
         break;
     }
 
-    SimpleStandardJobScheduler* js = new SimpleStandardJobScheduler(*storage_services.begin());
-    js->setWMS(this);
-    // Run ready tasks with defined scheduler implementation
-    js->scheduleTasks(
-            this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
+//    SimpleStandardJobScheduler* js = new SimpleStandardJobScheduler(*storage_services.begin());
+//    js->setWMS(this);
+//    // Run ready tasks with defined scheduler implementation
+//    js->scheduleTasks(
+//            this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
 
+    ((SimpleStandardJobScheduler *)(this->getStandardJobScheduler()))->setWMS(this);
+    this->getStandardJobScheduler()->scheduleTasks(
+            this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
     // Wait for a workflow execution event, and process it
     try {
       this->waitForAndProcessNextEvent();
