@@ -22,78 +22,104 @@ SimpleWMS::SimpleWMS(std::unique_ptr<wrench::StandardJobScheduler> standard_job_
                      const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
                      const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
                      const std::string &hostname) : wrench::WMS(
-         std::move(standard_job_scheduler),
-         std::move(pilot_job_scheduler),
-         compute_services,
-         storage_services,
-         {}, nullptr,
-         hostname,
-         "simple") {}
+        std::move(standard_job_scheduler),
+        std::move(pilot_job_scheduler),
+        compute_services,
+        storage_services,
+        {}, nullptr,
+        hostname,
+        "simple") {}
 
 /**
  * @brief main method of the SimpleWMS daemon
  */
 int SimpleWMS::main() {
 
-  wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
+    wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
 
-  // Check whether the WMS has a deferred start time
-  checkDeferredStart();
+    // Check whether the WMS has a deferred start time
+    checkDeferredStart();
 
-  WRENCH_INFO("About to execute a workflow with %lu tasks", this->getWorkflow()->getNumberOfTasks());
+    WRENCH_INFO("About to execute a workflow with %lu tasks", this->getWorkflow()->getNumberOfTasks());
 
-  // Create a job manager
-  this->job_manager = this->createJobManager();
+    // Create a job manager
+    this->job_manager = this->createJobManager();
 
-  // Create a data movement manager
-  std::shared_ptr<wrench::DataMovementManager> data_movement_manager = this->createDataMovementManager();
-
-  while (true) {
-    // Get the ready tasks
-    std::vector<wrench::WorkflowTask *> ready_tasks = this->getWorkflow()->getReadyTasks();
+    // Create a data movement manager
+    std::shared_ptr<wrench::DataMovementManager> data_movement_manager = this->createDataMovementManager();
 
     // Get the available compute services
     auto compute_services = this->getAvailableComputeServices<wrench::ComputeService>();
-
     if (compute_services.empty()) {
-      WRENCH_INFO("Aborting - No compute services available!");
-      break;
+        throw std::runtime_error("WMS needs at least one compute service to run!");
     }
 
     // Get the available storage services
     auto storage_services = this->getAvailableStorageServices();
-
     if (storage_services.empty()) {
-        WRENCH_INFO("Aborting - No storage services available!");
-        break;
+        throw std::runtime_error("WMS needs at least one storage service to run!");
     }
 
-//    SimpleStandardJobScheduler* js = new SimpleStandardJobScheduler(*storage_services.begin());
-//    js->setWMS(this);
-//    // Run ready tasks with defined scheduler implementation
-//    js->scheduleTasks(
-//            this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
+    while (true) {
+        // Get the ready tasks
+        std::vector<wrench::WorkflowTask *> ready_tasks = this->getWorkflow()->getReadyTasks();
 
-//    ((SimpleStandardJobScheduler *)(this->getStandardJobScheduler()))->setWMS(this);
-    this->getStandardJobScheduler()->scheduleTasks(
-            this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
-    // Wait for a workflow execution event, and process it
-    try {
-      this->waitForAndProcessNextEvent();
-    } catch (wrench::WorkflowExecutionException &e) {
-      WRENCH_INFO("Error while getting next execution event (%s)... ignoring and trying again",
-                   (e.getCause()->toString().c_str()));
-      continue;
+        this->getStandardJobScheduler()->scheduleTasks(compute_services, ready_tasks);
+
+        // Wait for a workflow execution event, and process it
+        try {
+            WRENCH_INFO("Waiting for some execution event (job completion or failure)");
+            this->waitForAndProcessNextEvent();
+            WRENCH_INFO("Got the execution event");
+        } catch (wrench::WorkflowExecutionException &e) {
+            WRENCH_INFO("Error while getting next execution event (%s)... ignoring and trying again",
+                        (e.getCause()->toString().c_str()));
+            continue;
+        }
+
+        if (this->getWorkflow()->isDone()) {
+            break;
+        }
     }
 
-    if (this->getWorkflow()->isDone()) {
-      break;
-    }
-  }
+    wrench::Simulation::sleep(10);
 
-  wrench::Simulation::sleep(10);
+    this->job_manager.reset();
 
-  this->job_manager.reset();
-
-  return 0;
+    return 0;
 }
+
+/**
+ * @brief Process a standard job failure event
+ *
+ * @param event: the event
+ */
+void SimpleWMS::processEventStandardJobFailure(std::shared_ptr<wrench::StandardJobFailedEvent> event) {
+    /* Retrieve the job that this event is for */
+    auto job = event->standard_job;
+    WRENCH_INFO("Notified that a standard job has failed (failure cause: %s)",
+                event->failure_cause->toString().c_str());
+    /* Retrieve the job's tasks */
+    WRENCH_INFO("As a result, the following tasks have failed:");
+    for (auto const &task : job->getTasks()) {
+        WRENCH_INFO(" - %s", task->getID().c_str());
+    }
+    throw std::runtime_error("A job failure has occurred... this should never happen!");
+}
+
+/**
+ * @brief Process a standard job completion event
+ *
+ * @param event: the event
+ */
+void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::StandardJobCompletedEvent> event) {
+    /* Retrieve the job that this event is for */
+    auto job = event->standard_job;
+    WRENCH_INFO("Notified that a standard job has successfully completed");
+    /* Retrieve the job's tasks */
+    WRENCH_INFO("As a result, the following tasks have completed:");
+    for (auto const &task : job->getTasks()) {
+        WRENCH_INFO(" - %s", task->getID().c_str());
+    }
+}
+

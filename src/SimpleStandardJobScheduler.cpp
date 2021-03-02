@@ -36,6 +36,8 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
 
     auto storage_service = this->default_storage_service;
 
+    WRENCH_INFO("About to submit jobs for %ld ready tasks", tasks.size());
+
     for (auto task: tasks) {
         /* Get one ready task */
         // auto ready_task = this->getWMS()->getWorkflow()->getReadyTasks().at(0);
@@ -46,8 +48,12 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         /* First, we need to create a map of file locations, stating for each file
          * where is should be read/written */
         std::map<wrench::WorkflowFile *, std::shared_ptr<wrench::FileLocation>> file_locations;
-        file_locations[task->getInputFiles().at(0)] = wrench::FileLocation::LOCATION(storage_service);
-        file_locations[task->getOutputFiles().at(0)] = wrench::FileLocation::LOCATION(storage_service);
+        for (auto const &f : task->getInputFiles()) {
+            file_locations[f] = wrench::FileLocation::LOCATION(storage_service);
+        }
+        for (auto const &f : task->getOutputFiles()) {
+            file_locations[f] = wrench::FileLocation::LOCATION(storage_service);
+        }
 
         /* Create the job  */
         auto standard_job = StandardJobScheduler::getJobManager()->createStandardJob(task, file_locations);

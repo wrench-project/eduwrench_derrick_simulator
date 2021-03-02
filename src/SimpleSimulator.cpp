@@ -41,8 +41,8 @@ int main(int argc, char **argv) {
                       "<!DOCTYPE platform SYSTEM \"http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd\">\n"
                       "<platform version=\"4.1\">\n"
                       "   <zone id=\"AS0\" routing=\"Full\">\n"
-                      "       <host id=\"WMSHost\" speed=\"1f\" core=\"1\"/>\n"
-                      "       <host id=\"storage_host\" speed=\"1f\" core=\"1\">\n"
+                      "       <host id=\"WMSHost\" speed=\"1Gf\" core=\"1\"/>\n"
+                      "       <host id=\"storage_host\" speed=\"1Gf\" core=\"1\">\n"
                       "           <disk id=\"hard_drive\" read_bw=\"100MBps\" write_bw=\"100MBps\">\n"
                       "               <prop id=\"size\" value=\"5000GiB\"/>\n"
                       "               <prop id=\"mount\" value=\"/\"/>\n"
@@ -93,9 +93,9 @@ int main(int argc, char **argv) {
     wrench::Workflow *workflow;
 
     if (ends_with(workflow_file, "dax")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1000Gf");
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f");
     } else if (ends_with(workflow_file,"json")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1000Gf");
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f");
     } else {
         std::cerr << "Workflow file name must end with '.dax' or '.json'" << std::endl;
         exit(1);

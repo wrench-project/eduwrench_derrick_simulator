@@ -28,6 +28,8 @@ public:
     std::shared_ptr<wrench::JobManager> job_manager;
 private:
     int main() override;
+    void processEventStandardJobFailure(std::shared_ptr<wrench::StandardJobFailedEvent> event) override;
+    void processEventStandardJobCompletion(std::shared_ptr<wrench::StandardJobCompletedEvent> event) override;
 };
 
 #endif //MY_SIMPLEWMS_H
