@@ -11,14 +11,6 @@
 
 XBT_LOG_NEW_DEFAULT_CATEGORY(simple_scheduler, "Log category for Simple Scheduler");
 
-SimpleWMS* SimpleStandardJobScheduler::getWMS() {
-    return this->wms;
-}
-
-void SimpleStandardJobScheduler::setWMS(SimpleWMS *wms) {
-    this->wms = wms;
-}
-
 /**
  * @brief Schedule and run a set of ready tasks on available bare metal resources
  *
@@ -44,25 +36,25 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
 
     auto storage_service = this->default_storage_service;
 
-    while (not this->getWMS()->getWorkflow()->isDone()) {
+    for (auto task: tasks) {
         /* Get one ready task */
-        auto ready_task = this->getWMS()->getWorkflow()->getReadyTasks().at(0);
+        // auto ready_task = this->getWMS()->getWorkflow()->getReadyTasks().at(0);
 
         /* Create a standard job for the task */
-        WRENCH_INFO("Creating a job for task %s", ready_task->getID().c_str());
+        WRENCH_INFO("Creating a job for task %s", task->getID().c_str());
 
         /* First, we need to create a map of file locations, stating for each file
          * where is should be read/written */
         std::map<wrench::WorkflowFile *, std::shared_ptr<wrench::FileLocation>> file_locations;
-        file_locations[ready_task->getInputFiles().at(0)] = wrench::FileLocation::LOCATION(storage_service);
-        file_locations[ready_task->getOutputFiles().at(0)] = wrench::FileLocation::LOCATION(storage_service);
+        file_locations[task->getInputFiles().at(0)] = wrench::FileLocation::LOCATION(storage_service);
+        file_locations[task->getOutputFiles().at(0)] = wrench::FileLocation::LOCATION(storage_service);
 
         /* Create the job  */
-        auto standard_job = this->getWMS()->job_manager->createStandardJob(ready_task, file_locations);
+        auto standard_job = StandardJobScheduler::getJobManager()->createStandardJob(task, file_locations);
 
         /* Submit the job to the compute service */
         WRENCH_INFO("Submitting the job to the compute service");
-        this->getWMS()->job_manager->submitJob(standard_job, compute_service);
+        StandardJobScheduler::getJobManager()->submitJob(standard_job, compute_service);
     }
     WRENCH_INFO("Done with scheduling tasks as standard jobs");
 }

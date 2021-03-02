@@ -74,7 +74,7 @@ int SimpleWMS::main() {
 //    js->scheduleTasks(
 //            this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
 
-    ((SimpleStandardJobScheduler *)(this->getStandardJobScheduler()))->setWMS(this);
+//    ((SimpleStandardJobScheduler *)(this->getStandardJobScheduler()))->setWMS(this);
     this->getStandardJobScheduler()->scheduleTasks(
             this->getAvailableComputeServices<wrench::ComputeService>(), ready_tasks);
     // Wait for a workflow execution event, and process it

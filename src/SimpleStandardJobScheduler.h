@@ -20,11 +20,8 @@ public:
 
   void scheduleTasks(const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
                      const std::vector<wrench::WorkflowTask *> &tasks);
-  SimpleWMS* getWMS();
-  void setWMS(SimpleWMS* wms);
 private:
   std::shared_ptr<wrench::StorageService> default_storage_service;
-  SimpleWMS* wms;
   // std::vector<std::shared_ptr<wrench::BareMetalComputeService>> compute_services_running_on_vms;
 };
 
