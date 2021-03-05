@@ -103,6 +103,8 @@ void SimpleWMS::processEventStandardJobFailure(std::shared_ptr<wrench::StandardJ
     WRENCH_INFO("As a result, the following tasks have failed:");
     for (auto const &task : job->getTasks()) {
         WRENCH_INFO(" - %s", task->getID().c_str());
+        ((SimpleStandardJobScheduler *) this->getStandardJobScheduler())
+                ->updateNumCoresAvailable(task->getNumCoresAllocated());
     }
     throw std::runtime_error("A job failure has occurred... this should never happen!");
 }
@@ -120,6 +122,8 @@ void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::Standa
     WRENCH_INFO("As a result, the following tasks have completed:");
     for (auto const &task : job->getTasks()) {
         WRENCH_INFO(" - %s", task->getID().c_str());
+        ((SimpleStandardJobScheduler *) this->getStandardJobScheduler())
+        ->updateNumCoresAvailable(task->getNumCoresAllocated());
     }
 }
 

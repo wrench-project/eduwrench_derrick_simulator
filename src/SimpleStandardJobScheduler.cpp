@@ -11,6 +11,11 @@
 
 XBT_LOG_NEW_DEFAULT_CATEGORY(simple_scheduler, "Log category for Simple Scheduler");
 
+// update number of available cores
+void SimpleStandardJobScheduler::updateNumCoresAvailable(unsigned long cores) {
+    numCoresAvailable += cores;
+}
+
 /**
  * @brief Schedule and run a set of ready tasks on available bare metal resources
  *
@@ -34,6 +39,9 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         throw std::runtime_error("This Scheduler can only handle a bare metal service");
     }
 
+    // set num cores available to total number of cores
+    numCoresAvailable = compute_service->getTotalNumCores();
+
     auto storage_service = this->default_storage_service;
 
     WRENCH_INFO("About to submit jobs for %ld ready tasks", tasks.size());
@@ -44,6 +52,14 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
 
         /* Create a standard job for the task */
         WRENCH_INFO("Creating a job for task %s", task->getID().c_str());
+
+        // decrement num cores needed for task from numCoresAvailable
+        updateNumCoresAvailable(task->getNumCoresAllocated() * -1);
+
+        // if not enough cores available (oversubscribing), go on to next task
+        if (numCoresAvailable < 0) {
+            continue;
+        }
 
         /* First, we need to create a map of file locations, stating for each file
          * where is should be read/written */
