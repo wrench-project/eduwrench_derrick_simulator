@@ -54,6 +54,10 @@ int SimpleWMS::main() {
         throw std::runtime_error("WMS needs at least one compute service to run!");
     }
 
+    // Set the scheduler's available num cores
+    // WARNING: This is only done for the first compute service (perhaps ugly?)
+    ((SimpleStandardJobScheduler *)(this->getStandardJobScheduler()))->setNumCoresAvailable((*compute_services.begin())->getTotalNumCores());
+
     // Get the available storage services
     auto storage_services = this->getAvailableStorageServices();
     if (storage_services.empty()) {
@@ -70,7 +74,7 @@ int SimpleWMS::main() {
         try {
             WRENCH_INFO("Waiting for some execution event (job completion or failure)");
             this->waitForAndProcessNextEvent();
-            WRENCH_INFO("Got the execution event");
+//            WRENCH_INFO("Got the execution event");
         } catch (wrench::WorkflowExecutionException &e) {
             WRENCH_INFO("Error while getting next execution event (%s)... ignoring and trying again",
                         (e.getCause()->toString().c_str()));
