@@ -10,6 +10,8 @@
 #include <wrench.h>
 #include "SimpleStandardJobScheduler.h"
 #include "SimpleWMS.h"
+#include <nlohmann/json.hpp>
+#include <fstream>
 
 static bool ends_with(const std::string& str, const std::string& suffix) {
     return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
@@ -24,17 +26,22 @@ int main(int argc, char **argv) {
     simulation.init(&argc, argv);
 
     // Parsing of the command-line arguments for this WRENCH simulation
-    if (argc != 4) {
-        std::cerr << "Usage: " << argv[0] << " <num hosts> <cores per compute node> <workflow file>" << std::endl;
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <json file>" << std::endl;
         exit(1);
     }
 
+    std::ifstream i(argv[1]);
+    nlohmann::json j;
+    i >> j;
+
     // The first argument is the number of compute nodes
-    int num_hosts = atoi(argv[1]);
+    // int num_hosts = atoi(argv[1]);
+    int num_hosts = j["num_hosts"];
 
     // The second argument is the number of cores per compute node
-    int cores = atoi(argv[2]);
-
+    // int cores = atoi(argv[2]);
+    int cores = j["cores"];
 
     // platform description file, written in XML following the SimGrid-defined DTD
     std::string xml = "<?xml version='1.0'?>\n"
@@ -86,7 +93,10 @@ int main(int argc, char **argv) {
     fclose(xml_file);
 
     // The third argument is the workflow description file, written in XML using the DAX DTD
-    char *workflow_file = argv[3];
+    // char *workflow_file = argv[3];
+    std::string s = j.at("workflow_file").dump();
+    char * workflow_file;
+    strcpy(workflow_file, s.c_str());
 
     // Reading and parsing the workflow description file to create a wrench::Workflow object
     std::cerr << "Loading workflow..." << std::endl;
