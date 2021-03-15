@@ -21,10 +21,12 @@ public:
   void scheduleTasks(const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
                      const std::vector<wrench::WorkflowTask *> &tasks);
 
-  void updateNumCoresAvailable(unsigned long cores);
+  void updateNumCoresAvailable(long increment);
+  void setNumCoresAvailable(unsigned long num_cores);
+  unsigned long getNumCoresAvailable();
 private:
   std::shared_ptr<wrench::StorageService> default_storage_service;
-  long numCoresAvailable;
+  unsigned long numCoresAvailable;
   // std::vector<std::shared_ptr<wrench::BareMetalComputeService>> compute_services_running_on_vms;
 };
 
