@@ -32,16 +32,15 @@ int main(int argc, char **argv) {
     }
 
     std::ifstream i(argv[1]);
-    nlohmann::json j;
-    i >> j;
+    nlohmann::json j = nlohmann::json::parse(i);
 
     // The first argument is the number of compute nodes
     // int num_hosts = atoi(argv[1]);
-    int num_hosts = j["num_hosts"];
+    int num_hosts = j.at("num_hosts").get<int>();
 
     // The second argument is the number of cores per compute node
     // int cores = atoi(argv[2]);
-    int cores = j["cores"];
+    int cores = j.at("cores").get<int>();
 
     // platform description file, written in XML following the SimGrid-defined DTD
     std::string xml = "<?xml version='1.0'?>\n"
@@ -94,9 +93,8 @@ int main(int argc, char **argv) {
 
     // The third argument is the workflow description file, written in XML using the DAX DTD
     // char *workflow_file = argv[3];
-    std::string s = j.at("workflow_file").dump();
-    char * workflow_file;
-    strcpy(workflow_file, s.c_str());
+    std::string s = j.at("workflow_file").get<std::string>();
+    char * workflow_file = &s[0];
 
     // Reading and parsing the workflow description file to create a wrench::Workflow object
     std::cerr << "Loading workflow..." << std::endl;
@@ -175,14 +173,17 @@ int main(int argc, char **argv) {
 
     // Launch the simulation
     std::cerr << "Launching the Simulation..." << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     try {
         simulation.launch();
     } catch (std::runtime_error &e) {
         std::cerr << "Exception: " << e.what() << std::endl;
         return 0;
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = duration_cast<std::chrono::microseconds>(end - start);
     std::cerr << "Simulation done!" << std::endl;
-
+    std::cerr << "Execution time: " << duration.count() << " microseconds" << std::endl;
     return 0;
 }
 

@@ -43,3 +43,6 @@ Makefile
 
 # Mac stuff
 .DS_Store
+
+# test arguments file
+args.json
