@@ -86,8 +86,6 @@ int SimpleWMS::main() {
         }
     }
 
-    wrench::Simulation::sleep(10);
-
     this->job_manager.reset();
 
     return 0;

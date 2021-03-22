@@ -183,7 +183,13 @@ int main(int argc, char **argv) {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = duration_cast<std::chrono::microseconds>(end - start);
     std::cerr << "Simulation done!" << std::endl;
-    std::cerr << "Execution time: " << duration.count() << " microseconds" << std::endl;
+    auto exit_tasks = workflow->getExitTaskMap();
+    double workflow_finish_time = 0.0;
+    for (auto const & t : exit_tasks) {
+        workflow_finish_time = std::max<double>(t.second->getEndDate(), workflow_finish_time);
+    }
+    std::cerr << "Simulated workflow execution time: " << workflow_finish_time << " seconds" << std::endl;
+    std::cerr << "(Simulation time: " << duration.count() << " microseconds)" << std::endl;
     return 0;
 }
 
