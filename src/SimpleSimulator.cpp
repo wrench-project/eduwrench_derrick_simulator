@@ -32,7 +32,12 @@ int main(int argc, char **argv) {
     }
 
     std::ifstream i(argv[1]);
-    nlohmann::json j = nlohmann::json::parse(i);
+    nlohmann::json j;
+    try {
+        j = nlohmann::json::parse(i);
+    } catch (std::invalid_argument &e) {
+        std::cerr << "Problem parsing JSON input file: " + std::string(e.what()) + "\n";
+    }
 
     // The first argument is the number of compute nodes
     // int num_hosts = atoi(argv[1]);
