@@ -39,30 +39,44 @@ int main(int argc, char **argv) {
         std::cerr << "Problem parsing JSON input file: " + std::string(e.what()) + "\n";
     }
 
-    // The first argument is the number of compute nodes
-    // int num_hosts = atoi(argv[1]);
+    // number of compute nodes
     int num_hosts = j.at("num_hosts").get<int>();
 
-    // The second argument is the number of cores per compute node
-    // int cores = atoi(argv[2]);
+    // the number of cores per compute node
     int cores = j.at("cores").get<int>();
+
+    // pstate spec
+    int pstate = j.at("pstate").get<int>();
+
+    // pstate value
+    std::string pstate_value = j.at("value").get<std::string>();
 
     // platform description file, written in XML following the SimGrid-defined DTD
     std::string xml = "<?xml version='1.0'?>\n"
                       "<!DOCTYPE platform SYSTEM \"http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd\">\n"
                       "<platform version=\"4.1\">\n"
-                      "   <zone id=\"AS0\" routing=\"Full\">\n"
-                      "       <host id=\"WMSHost\" speed=\"1Gf\" core=\"1\"/>\n"
-                      "       <host id=\"storage_host\" speed=\"1Gf\" core=\"1\">\n"
+                      "   <zone id=\"AS0\" routing=\"Full\">\n\n"
+                      "       <host id=\"WMSHost\" speed=\"1Gf\" pstate=\"0\" core=\"1\">\n"
+                      "           <prop id=\"wattage_per_state\" value=\"0.0:0.0\"/>\n"
+                      "           <prop id=\"wattage_off\" value=\"0\"/>\n"
+                      "       </host>\n\n"
+                      "       <host id=\"storage_host\" speed=\"1Gf\" pstate=\"0\" core=\"1\">\n"
                       "           <disk id=\"hard_drive\" read_bw=\"100MBps\" write_bw=\"100MBps\">\n"
                       "               <prop id=\"size\" value=\"5000GiB\"/>\n"
                       "               <prop id=\"mount\" value=\"/\"/>\n"
                       "           </disk>\n"
+                      "           <prop id=\"wattage_per_state\" value=\"10.0:100.0\"/>\n"
+                      "           <prop id=\"wattage_off\" value=\"0\"/>\n"
                       "       </host>\n";
 
+                      xml.append("\n");
                       for (int i = 1; i < num_hosts + 1; i++) {
                           xml.append("       <host id=\"compute_host_" + std::to_string(i)
-                          + "\" speed=\"1f\" core=\"" + std::to_string(cores) + "\"/>\n");
+                          + "\" speed=\"1f\" pstate=\"" + std::to_string(pstate) +"\" core=\""
+                          + std::to_string(cores) + "\">\n" +
+                          "           <prop id=\"wattage_per_state\" value=\"" + pstate_value + "\"/>\n" +
+                          "           <prop id=\"wattage_off\" value=\"0\"/>\n" +
+                          "       </host>\n");
                       }
                       xml.append("\n");
 
@@ -96,8 +110,7 @@ int main(int argc, char **argv) {
     fprintf(xml_file, "%s", xml.c_str());
     fclose(xml_file);
 
-    // The third argument is the workflow description file, written in XML using the DAX DTD
-    // char *workflow_file = argv[3];
+    // workflow description file, written in XML using the DAX DTD
     std::string s = j.at("workflow_file").get<std::string>();
     char * workflow_file = &s[0];
 
@@ -188,13 +201,24 @@ int main(int argc, char **argv) {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = duration_cast<std::chrono::microseconds>(end - start);
     std::cerr << "Simulation done!" << std::endl;
+
     auto exit_tasks = workflow->getExitTaskMap();
     double workflow_finish_time = 0.0;
     for (auto const & t : exit_tasks) {
         workflow_finish_time = std::max<double>(t.second->getEndDate(), workflow_finish_time);
     }
+
+    auto total_energy = 0;
+    total_energy += simulation.getEnergyConsumed("WMSHost");
+    total_energy += simulation.getEnergyConsumed("storage_host");
+    for (int i = 1; i < num_hosts + 1; i++) {
+        total_energy += simulation.getEnergyConsumed("compute_host_"+ std::to_string(i));
+    }
+
+    std::cerr << "Total Energy Consumption: " << total_energy << " joules" << std::endl;
     std::cerr << "Simulated workflow execution time: " << workflow_finish_time << " seconds" << std::endl;
     std::cerr << "(Simulation time: " << duration.count() << " microseconds)" << std::endl;
+
     return 0;
 }
 

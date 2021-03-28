@@ -1,6 +1,8 @@
 {
   "num_hosts": 3,
   "cores": 10,
-  "workflow_file": "../seismology-workflow.json"
+  "workflow_file": "../seismology-workflow.json",
+  "pstate": 0,
+  "value": "10.00:100.00"
 }
 
