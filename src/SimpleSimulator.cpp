@@ -60,12 +60,12 @@ int main(int argc, char **argv) {
                       "           <prop id=\"wattage_per_state\" value=\"0.0:0.0\"/>\n"
                       "           <prop id=\"wattage_off\" value=\"0\"/>\n"
                       "       </host>\n\n"
-                      "       <host id=\"storage_host\" speed=\"1Gf\" pstate=\"0\" core=\"1\">\n"
+                      "       <host id=\"storage_host\" speed=\"1Gf\" pstate=\"" + std::to_string(pstate) + "\" core=\"1\">\n"
                       "           <disk id=\"hard_drive\" read_bw=\"100MBps\" write_bw=\"100MBps\">\n"
                       "               <prop id=\"size\" value=\"5000GiB\"/>\n"
                       "               <prop id=\"mount\" value=\"/\"/>\n"
                       "           </disk>\n"
-                      "           <prop id=\"wattage_per_state\" value=\"10.0:100.0\"/>\n"
+                      "           <prop id=\"wattage_per_state\" value=\"" + pstate_value + "\"/>\n"
                       "           <prop id=\"wattage_off\" value=\"0\"/>\n"
                       "       </host>\n";
 
