@@ -45,11 +45,19 @@ int main(int argc, char **argv) {
     // the number of cores per compute node
     int cores = j.at("cores").get<int>();
 
+    // compute host speed
+    std::string speed = j.at("speed").get<std::string>();
     // pstate spec
     int pstate = j.at("pstate").get<int>();
 
     // pstate value
     std::string pstate_value = j.at("value").get<std::string>();
+
+    // energy cost per MWh ($/MWh)
+    double cost = j.at("energy_cost_per_mwh").get<double>();
+
+    // energy CO2 per MWh (CO2/MWh)
+    double co2 = j.at("energy_co2_per_mwh").get<double>();
 
     // platform description file, written in XML following the SimGrid-defined DTD
     std::string xml = "<?xml version='1.0'?>\n"
@@ -72,7 +80,7 @@ int main(int argc, char **argv) {
                       xml.append("\n");
                       for (int i = 1; i < num_hosts + 1; i++) {
                           xml.append("       <host id=\"compute_host_" + std::to_string(i)
-                          + "\" speed=\"1f\" pstate=\"" + std::to_string(pstate) +"\" core=\""
+                          + "\" speed=\"" + speed + "\" pstate=\"" + std::to_string(pstate) +"\" core=\""
                           + std::to_string(cores) + "\">\n" +
                           "           <prop id=\"wattage_per_state\" value=\"" + pstate_value + "\"/>\n" +
                           "           <prop id=\"wattage_off\" value=\"0\"/>\n" +
@@ -215,7 +223,19 @@ int main(int argc, char **argv) {
         total_energy += simulation.getEnergyConsumed("compute_host_"+ std::to_string(i));
     }
 
+    // 1 MWh = 3,600 MJ = 3,600,000,000 J
+    auto total_cost =  (cost / 3600000000) * total_energy;
+    auto total_co2 = (co2 / 3600000000) * total_energy;
+
+    char cost_buf[25];
+    char co2_buf[25];
+    sprintf(cost_buf, "%.2f", total_cost);
+    sprintf(co2_buf, "%.2f", total_co2);
+
     std::cerr << "Total Energy Consumption: " << total_energy << " joules" << std::endl;
+    std::cerr << "Total Energy Monetary Cost: $" << cost_buf << std::endl;
+    std::cerr << "Total Energy CO2 Cost: " << co2_buf << " CO2" << std::endl;
+
     std::cerr << "Simulated workflow execution time: " << workflow_finish_time << " seconds" << std::endl;
     std::cerr << "(Simulation time: " << duration.count() << " microseconds)" << std::endl;
 
