@@ -1,11 +1,11 @@
 {
-  "num_hosts": 3,
-  "cores": 10,
-  "workflow_file": "../seismology-workflow.json",
-  "speed": "1f",
+  "num_hosts": 1,
+  "cores": 1,
+  "workflow_file": "../montage2-workflow.json",
+  "speed": "0.5f",
   "pstate": 0,  
-  "energy_cost_per_mwh": 10,
-  "energy_co2_per_mwh": 30,
+  "energy_cost_per_mwh": 1000,
+  "energy_co2_per_mwh": 3000,
   "value": "10.00:100.00"
 }
 
