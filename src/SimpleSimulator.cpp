@@ -68,12 +68,12 @@ int main(int argc, char **argv) {
                       "           <prop id=\"wattage_per_state\" value=\"0.0:0.0\"/>\n"
                       "           <prop id=\"wattage_off\" value=\"0\"/>\n"
                       "       </host>\n\n"
-                      "       <host id=\"storage_host\" speed=\"1Gf\" pstate=\"" + std::to_string(pstate) + "\" core=\"1\">\n"
+                      "       <host id=\"storage_host\" speed=\"1Gf\" pstate=\"0\" core=\"1\">\n"
                       "           <disk id=\"hard_drive\" read_bw=\"100MBps\" write_bw=\"100MBps\">\n"
                       "               <prop id=\"size\" value=\"5000GiB\"/>\n"
                       "               <prop id=\"mount\" value=\"/\"/>\n"
                       "           </disk>\n"
-                      "           <prop id=\"wattage_per_state\" value=\"" + pstate_value + "\"/>\n"
+                      "           <prop id=\"wattage_per_state\" value=\"10.00:100.00\"/>\n"
                       "           <prop id=\"wattage_off\" value=\"0\"/>\n"
                       "       </host>\n";
 
@@ -126,10 +126,16 @@ int main(int argc, char **argv) {
     std::cerr << "Loading workflow..." << std::endl;
     wrench::Workflow *workflow;
 
+    // min number of cores per task
+    int min_cores = j.at("min_cores_per_task").get<int>();
+
+    // max number of cores per task
+    int max_cores = j.at("max_cores_per_task").get<int>();
+
     if (ends_with(workflow_file, "dax")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f");
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f", min_cores, max_cores);
     } else if (ends_with(workflow_file,"json")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f");
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", min_cores, max_cores);
     } else {
         std::cerr << "Workflow file name must end with '.dax' or '.json'" << std::endl;
         exit(1);

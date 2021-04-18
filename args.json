@@ -1,11 +1,13 @@
 {
-  "num_hosts": 1,
-  "cores": 1,
-  "workflow_file": "../montage2-workflow.json",
-  "speed": "0.5f",
-  "pstate": 0,  
+  "num_hosts": 2,
+  "cores": 8,
+  "workflow_file": "../bigger-montage-workflow.json",
+  "speed": "0.5217f, 0.6087f, 0.6957f, 0.7826f, 0.8696f, 0.9565f, 1f",
+  "min_cores_per_task": 4,
+  "max_cores_per_task": 4,
+  "pstate": 6,
   "energy_cost_per_mwh": 1000,
   "energy_co2_per_mwh": 3000,
-  "value": "10.00:100.00"
+  "value": "98:120, 98:130, 98:140, 98:150, 98:160, 98:170, 98:190"
 }
 
