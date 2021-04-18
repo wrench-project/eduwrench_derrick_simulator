@@ -133,9 +133,9 @@ int main(int argc, char **argv) {
     int max_cores = j.at("max_cores_per_task").get<int>();
 
     if (ends_with(workflow_file, "dax")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f", min_cores, max_cores);
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f", false, min_cores, max_cores);
     } else if (ends_with(workflow_file,"json")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", min_cores, max_cores);
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", false, min_cores, max_cores);
     } else {
         std::cerr << "Workflow file name must end with '.dax' or '.json'" << std::endl;
         exit(1);
