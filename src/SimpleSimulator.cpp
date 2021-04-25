@@ -77,41 +77,41 @@ int main(int argc, char **argv) {
                       "           <prop id=\"wattage_off\" value=\"0\"/>\n"
                       "       </host>\n";
 
-                      xml.append("\n");
-                      for (int i = 1; i < num_hosts + 1; i++) {
-                          xml.append("       <host id=\"compute_host_" + std::to_string(i)
-                          + "\" speed=\"" + speed + "\" pstate=\"" + std::to_string(pstate) +"\" core=\""
-                          + std::to_string(cores) + "\">\n" +
-                          "           <prop id=\"wattage_per_state\" value=\"" + pstate_value + "\"/>\n" +
-                          "           <prop id=\"wattage_off\" value=\"0\"/>\n" +
-                          "       </host>\n");
-                      }
-                      xml.append("\n");
+    xml.append("\n");
+    for (int i = 1; i < num_hosts + 1; i++) {
+        xml.append("       <host id=\"compute_host_" + std::to_string(i)
+                   + "\" speed=\"" + speed + "\" pstate=\"" + std::to_string(pstate) + "\" core=\""
+                   + std::to_string(cores) + "\">\n" +
+                   "           <prop id=\"wattage_per_state\" value=\"" + pstate_value + "\"/>\n" +
+                   "           <prop id=\"wattage_off\" value=\"0\"/>\n" +
+                   "       </host>\n");
+    }
+    xml.append("\n");
 
-                      // links between each compute host and storage host (1 to hosts)
-                      for (int i = 1; i < num_hosts + 1; i++) {
-                          xml.append("       <link id=\"" + std::to_string(i)
-                          + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
-                      }
+    // links between each compute host and storage host (1 to hosts)
+    for (int i = 1; i < num_hosts + 1; i++) {
+        xml.append("       <link id=\"" + std::to_string(i)
+                   + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
+    }
 
-                      // links between WMS Host and Storage host
-                      xml.append("       <link id=\"" + std::to_string(num_hosts + 1)
-                      + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
-                      xml.append("\n");
+    // links between WMS Host and Storage host
+    xml.append("       <link id=\"" + std::to_string(num_hosts + 1)
+               + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
+    xml.append("\n");
 
-                      // routes between each compute host and storage host (1 to hosts)
-                      for (int i = 1; i < num_hosts + 1; i++) {
-                          xml.append("       <route src=\"compute_host_" + std::to_string(i) +
-                          "\" dst=\"storage_host\"> <link_ctn id=\"" + std::to_string(i) + "\"/> </route>\n");
-                      }
-                      // routes between WMS Host and Storage host
-                      xml.append("       <route src=\"WMSHost\" dst=\"storage_host\"> "
-                                 "<link_ctn id=\"" + std::to_string(num_hosts + 1) + "\"/> </route>\n");
-                      xml.append("\n");
+    // routes between each compute host and storage host (1 to hosts)
+    for (int i = 1; i < num_hosts + 1; i++) {
+        xml.append("       <route src=\"compute_host_" + std::to_string(i) +
+                   "\" dst=\"storage_host\"> <link_ctn id=\"" + std::to_string(i) + "\"/> </route>\n");
+    }
+    // routes between WMS Host and Storage host
+    xml.append("       <route src=\"WMSHost\" dst=\"storage_host\"> "
+               "<link_ctn id=\"" + std::to_string(num_hosts + 1) + "\"/> </route>\n");
+    xml.append("\n");
 
-                      xml.append(
-                      "   </zone>\n"
-                      "</platform>\n");
+    xml.append(
+            "   </zone>\n"
+            "</platform>\n");
 
     std::string platform_file = "/tmp/hosts.xml";
     auto xml_file = fopen(platform_file.c_str(), "w");
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
 
     // workflow description file, written in XML using the DAX DTD
     std::string s = j.at("workflow_file").get<std::string>();
-    char * workflow_file = &s[0];
+    char *workflow_file = &s[0];
 
     // Reading and parsing the workflow description file to create a wrench::Workflow object
     std::cerr << "Loading workflow..." << std::endl;
@@ -133,9 +133,11 @@ int main(int argc, char **argv) {
     int max_cores = j.at("max_cores_per_task").get<int>();
 
     if (ends_with(workflow_file, "dax")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f", false, min_cores, max_cores);
-    } else if (ends_with(workflow_file,"json")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", false, min_cores, max_cores);
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f", false, min_cores,
+                                                                        max_cores);
+    } else if (ends_with(workflow_file, "json")) {
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", false, min_cores,
+                                                                         max_cores);
     } else {
         std::cerr << "Workflow file name must end with '.dax' or '.json'" << std::endl;
         exit(1);
@@ -218,7 +220,7 @@ int main(int argc, char **argv) {
 
     auto exit_tasks = workflow->getExitTaskMap();
     double workflow_finish_time = 0.0;
-    for (auto const & t : exit_tasks) {
+    for (auto const &t : exit_tasks) {
         workflow_finish_time = std::max<double>(t.second->getEndDate(), workflow_finish_time);
     }
 
@@ -226,11 +228,11 @@ int main(int argc, char **argv) {
     total_energy += simulation.getEnergyConsumed("WMSHost");
     total_energy += simulation.getEnergyConsumed("storage_host");
     for (int i = 1; i < num_hosts + 1; i++) {
-        total_energy += simulation.getEnergyConsumed("compute_host_"+ std::to_string(i));
+        total_energy += simulation.getEnergyConsumed("compute_host_" + std::to_string(i));
     }
 
     // 1 MWh = 3,600 MJ = 3,600,000,000 J
-    auto total_cost =  (cost / 3600000000) * total_energy;
+    auto total_cost = (cost / 3600000000) * total_energy;
     auto total_co2 = (co2 / 3600000000) * total_energy;
 
     char cost_buf[25];
@@ -244,6 +246,15 @@ int main(int argc, char **argv) {
 
     std::cerr << "Simulated workflow execution time: " << workflow_finish_time << " seconds" << std::endl;
     std::cerr << "(Simulation time: " << duration.count() << " microseconds)" << std::endl;
+
+    nlohmann::json output_json =
+            {
+                {"energy_consumption", total_energy},
+                {"energy_cost", cost_buf},
+                {"energy_co2", co2_buf}
+            };
+
+    std::cout << output_json.dump() << std::endl;
 
     return 0;
 }
