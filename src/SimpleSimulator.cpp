@@ -250,8 +250,9 @@ int main(int argc, char **argv) {
     nlohmann::json output_json =
             {
                 {"energy_consumption", total_energy},
-                {"energy_cost", cost_buf},
-                {"energy_co2", co2_buf}
+                {"energy_cost", total_cost},
+                {"energy_co2", total_co2},
+                {"exec_time", workflow_finish_time}
             };
 
     std::cout << output_json.dump() << std::endl;
