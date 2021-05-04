@@ -5,10 +5,10 @@ import json;
 from pymongo import MongoClient
 
 
-#l_pstate = range(0,7);
-#l_num_hosts = range(1,129);
-l_pstate = range(0,5);
-l_num_hosts = range(1,20);
+l_pstate = range(0,7);
+l_num_hosts = range(1,129);
+#l_pstate = range(0,5);
+#l_num_hosts = range(1,20);
 
 if __name__ == '__main__':
 
