@@ -12,7 +12,7 @@ l_num_hosts = range(1,129);
 
 if __name__ == '__main__':
 
-    # Connect to MONDO
+    # Connect to MONGO
     client = MongoClient()
     derrick = client.derrick
     results = derrick.results
