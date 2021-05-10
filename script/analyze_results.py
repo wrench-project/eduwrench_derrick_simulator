@@ -9,7 +9,7 @@ import numpy
 from functools import cmp_to_key
 from pymongo import MongoClient
 
-def analyze_results():
+def analyze_results(timeToRun):
 
     # Establish mongo connection
     client = MongoClient()
@@ -17,7 +17,6 @@ def analyze_results():
     results = derrick.results
 
     # seconds
-    timeToRun = 600
     json_string = {}
     
     all_results = results.find({})
@@ -31,9 +30,9 @@ def analyze_results():
     for result in all_results:
         all_pstate.append(result["pstate"])
         all_num_hosts.append(result["num_hosts"])
-        all_exec_time.append(result["num_hosts"])
-        all_total_cost.append(result["num_hosts"])
-        all_total_co2.append(result["num_hosts"])
+        all_exec_time.append(result["exec_time"])
+        all_total_cost.append(result["total_cost"])
+        all_total_co2.append(result["total_co2"])
 
     index = -1
     i = 0
@@ -55,8 +54,16 @@ def analyze_results():
 
     print(json_string)
 
+    print("Question #2: Answer = ")
+
 if __name__ == '__main__':
+
+    if (len(sys.argv) != 2):
+        sys.stderr.write("Usage: " + sys.argv[0] + " <run time in secs for Q#2>\n")
+        sys.exit(1)
     
-    analyze_results()
+    timeToRun = int(sys.argv[1])
+    
+    analyze_results(timeToRun)
 
 
