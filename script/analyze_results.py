@@ -16,45 +16,46 @@ def analyze_results(timeToRun):
     derrick = client.derrick
     results = derrick.results
 
-    # seconds
-    json_string = {}
-    
+    start_string = """{
+  "pstate": 0,
+  "num_hosts": 0,
+  "exec_time": 0,
+  "energy_cost": 0,
+  "energy_co2": 0
+}
+"""
+
+    last_item = {}
+    json_string = json.loads(start_string)
     all_results = results.find({})
 
-    all_pstate = []
-    all_num_hosts = []
-    all_exec_time = []
-    all_total_cost = []
-    all_total_co2 = []
-
     for result in all_results:
-        all_pstate.append(result["pstate"])
-        all_num_hosts.append(result["num_hosts"])
-        all_exec_time.append(result["exec_time"])
-        all_total_cost.append(result["total_cost"])
-        all_total_co2.append(result["total_co2"])
+        if ((result["exec_time"] < timeToRun) and (json_string["exec_time"] < result["exec_time"])):
+            json_string["pstate"] = result["pstate"]
+            json_string["num_hosts"] = result["num_hosts"]
+            json_string["exec_time"] = result["exec_time"]
+            json_string["energy_cost"] = result["energy_cost"]
+            json_string["energy_co2"] = result["energy_co2"]
+        last_item = result
+    
+    t_1 = results.find_one({"pstate": last_item["pstate"], "num_hosts": 1}, 
+          {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
+    t_n = results.find_one({"pstate": last_item["pstate"], "num_hosts": last_item["num_hosts"]},
+          {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
+    print(t_1)
+    print(t_n)
+    print()
 
-    index = -1
-    i = 0
-    while i < len(all_exec_time):
-        if i == 0:
-            index = 0
-        if ((all_exec_time[i] < timeToRun) and (all_exec_time[index] < all_exec_time[i])):
-            json_string["pstate"] = all_pstate.pop(i)
-            all_pstate.insert(i, json_string["pstate"])
-            json_string["num_hosts"] = all_num_hosts.pop(i)
-            all_num_hosts.insert(i, json_string["num_hosts"])
-            json_string["exec_time"] = all_exec_time.pop(i)
-            all_exec_time.insert(i, json_string["exec_time"])
-            json_string["total_cost"] = all_total_cost.pop(i)
-            all_total_cost.insert(i, json_string["total_cost"])
-            json_string["total_co2"] = all_total_co2.pop(i)
-            all_total_co2.insert(i, json_string["total_co2"]) 
-        i+=1 
+    speedup = t_1["exec_time"] / t_n["exec_time"]
+    print("Question #1 Answer: ")
+    print("Speedup = " + str(speedup))
+    par_eff = speedup / last_item["num_hosts"]
+    print("Parallel Efficiency = " + str(par_eff))
+    print()
 
+    print("Question #2 Answer: ")
     print(json_string)
-
-    print("Question #2: Answer = ")
+    print()
 
 if __name__ == '__main__':
 
