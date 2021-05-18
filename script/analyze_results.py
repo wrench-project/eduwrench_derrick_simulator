@@ -9,7 +9,24 @@ import numpy
 from functools import cmp_to_key
 from pymongo import MongoClient
 
-def analyze_results(timeToRun):
+def binary_search(results, low_num_nodes, high_num_nodes, par_eff, t_1):
+
+    if (high_num_nodes >= low_num_nodes): 
+        mid = (high_num_nodes + low_num_nodes) // 2
+        
+        t_mid = results.find_one({"pstate": t_1["pstate"], "num_hosts": mid},
+        {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
+
+        par_eff_mid = (t_1["exec_time"] / t_mid["exec_time"]) / mid
+
+        if par_eff_mid == par_eff or high_num_nodes == low_num_nodes:
+            return mid
+        elif par_eff_mid > par_eff:
+            return binary_search(results, mid + 1, high_num_nodes, par_eff, t_1)
+        else:
+            return binary_search(results, low_num_nodes, mid - 1, par_eff, t_1)
+
+def analyze_results(timeToRun, par_eff_benchmark):
 
     # Establish mongo connection
     client = MongoClient()
@@ -42,6 +59,31 @@ def analyze_results(timeToRun):
           {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
     t_n = results.find_one({"pstate": last_item["pstate"], "num_hosts": last_item["num_hosts"]},
           {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
+
+    q3_num_hosts = binary_search(results, 1, last_item["num_hosts"], par_eff_benchmark, t_1)
+
+    pstate_iter = 0
+    q3_par_eff = 0
+    pstate_to_use = 0
+
+    while pstate_iter < last_item["pstate"]:
+        t_ret = results.find_one({"pstate": pstate_iter, "num_hosts": q3_num_hosts},
+        {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
+
+        t_ret_par_eff = (t_1["exec_time"] / t_ret["exec_time"]) / q3_num_hosts
+        
+        if pstate_iter == 0:
+            q3_par_eff = t_ret_par_eff
+        else:
+            if t_ret_par_eff > q3_par_eff:
+                pstate_to_use = pstate_iter
+                q3_par_eff = t_ret_par_eff
+        pstate_iter += 1
+
+    q3_ret = results.find_one({"pstate": pstate_to_use, "num_hosts": q3_num_hosts},
+        {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
+
+    print()
     print(t_1)
     print(t_n)
     print()
@@ -57,14 +99,19 @@ def analyze_results(timeToRun):
     print(json_string)
     print()
 
+    print("Question #3 Answer: ")
+    print(q3_ret)
+    print("Parallel Efficiency: " + str(q3_par_eff))
+    print()
+
 if __name__ == '__main__':
 
-    if (len(sys.argv) != 2):
-        sys.stderr.write("Usage: " + sys.argv[0] + " <run time in secs for Q#2>\n")
+    if (len(sys.argv) != 3):
+        sys.stderr.write("Usage: " + sys.argv[0] + " <Q#2 run time in secs> <Q#3 parallel efficiency> \n")
         sys.exit(1)
     
     timeToRun = int(sys.argv[1])
-    
-    analyze_results(timeToRun)
+    par_eff_benchmark = float(sys.argv[2])
+    analyze_results(timeToRun, par_eff_benchmark)
 
 
