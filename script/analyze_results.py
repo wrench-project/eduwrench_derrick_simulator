@@ -67,10 +67,13 @@ def analyze_results(timeToRun, par_eff_benchmark):
     pstate_to_use = 0
 
     while pstate_iter < last_item["pstate"]:
+        t_1_pstate = results.find_one({"pstate": pstate_iter, "num_hosts": 1},
+        {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
+
         t_ret = results.find_one({"pstate": pstate_iter, "num_hosts": q3_num_hosts},
         {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
 
-        t_ret_par_eff = (t_1["exec_time"] / t_ret["exec_time"]) / q3_num_hosts
+        t_ret_par_eff = (t_1_pstate["exec_time"] / t_ret["exec_time"]) / q3_num_hosts
         
         if pstate_iter == 0:
             q3_par_eff = t_ret_par_eff
