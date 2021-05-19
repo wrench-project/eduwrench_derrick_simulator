@@ -69,7 +69,7 @@ def analyze_results(timeToRun, par_eff_benchmark):
 
     # We use q3_num_hosts hosts
 
-    while pstate_iter < last_item["pstate"]:
+    while pstate_iter <= last_item["pstate"]:
         #t_1_pstate = results.find_one({"pstate": pstate_iter, "num_hosts": 1},
         #{"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
 
@@ -89,7 +89,7 @@ def analyze_results(timeToRun, par_eff_benchmark):
         #    if t_ret_par_eff > q3_par_eff:
         #        pstate_to_use = pstate_iter
         #        q3_par_eff = t_ret_par_eff
-        #pstate_iter += 1
+        pstate_iter += 1
 
     q3_ret = results.find_one({"pstate": pstate_to_use, "num_hosts": q3_num_hosts},
         {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
@@ -97,11 +97,11 @@ def analyze_results(timeToRun, par_eff_benchmark):
     # Compute optimal solution for Question 3
     q3_best_cost = sys.maxsize
     q3_best_config = []
-    for num_hosts in range(1, last_item["num_hosts"):
-        for pstate in range(0, last_item["pstate"):
+    for num_hosts in range(1, last_item["num_hosts"] + 1):
+        for pstate in range(0, last_item["pstate"] + 1):
             res =  results.find_one({"pstate": pstate, "num_hosts": num_hosts})
             if (res["exec_time"] <= timeToRun):
-                if (res["energy_cost" < q3_best_cost):
+                if (res["energy_cost"] < q3_best_cost):
                     q3_best_cost = res["energy_cost"]
                     q3_best_config = [num_hosts, pstate]
                     
