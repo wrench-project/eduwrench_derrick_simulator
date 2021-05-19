@@ -60,24 +60,17 @@ def analyze_results(timeToRun, par_eff_benchmark):
     t_n = results.find_one({"pstate": last_item["pstate"], "num_hosts": last_item["num_hosts"]},
           {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
 
+
     ## Question 3
     q3_num_hosts = binary_search(results, 1, last_item["num_hosts"], par_eff_benchmark, t_1)
 
     pstate_iter = 0
     q3_par_eff = 0
-    pstate_to_use = 0
+    pstate_to_use = -1
 
     # We use q3_num_hosts hosts
 
-    while pstate_iter <= last_item["pstate"]:
-        #t_1_pstate = results.find_one({"pstate": pstate_iter, "num_hosts": 1},
-        #{"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
-
-        #t_ret = results.find_one({"pstate": pstate_iter, "num_hosts": q3_num_hosts},
-        #{"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
-
-        #t_ret_par_eff = (t_1_pstate["exec_time"] / t_ret["exec_time"]) / q3_num_hosts
-
+    while pstate_iter < last_item["pstate"]:
         t_ret = results.find_one({"pstate": pstate_iter, "num_hosts": q3_num_hosts})
         if (t_ret["exec_time"] <= timeToRun):
             pstate_to_use = pstate_iter
@@ -90,6 +83,10 @@ def analyze_results(timeToRun, par_eff_benchmark):
         #        pstate_to_use = pstate_iter
         #        q3_par_eff = t_ret_par_eff
         pstate_iter += 1
+
+    if (pstate_to_use < 0):
+        sys.stderr.write("Q3: couldn't find a feasible pstate. Aborting!\n")
+        sys.exit(1)
 
     q3_ret = results.find_one({"pstate": pstate_to_use, "num_hosts": q3_num_hosts},
         {"_id": 0, "pstate": 1, "num_hosts": 1, "exec_time": 1, "energy_cost": 1, "energy_co2": 1})
@@ -127,7 +124,7 @@ def analyze_results(timeToRun, par_eff_benchmark):
 
     print("Question #3 Answer: ")
     print(q3_ret)
-    print("#hosts: " + str(q3_num_hosts))
+    print("hosts: " + str(q3_num_hosts))
     print("pstate: " + str(pstate_to_use))
     print("Exec time: " + str(q3_ret["exec_time"]))
     print("cost: " + str(q3_ret["energy_cost"]))
