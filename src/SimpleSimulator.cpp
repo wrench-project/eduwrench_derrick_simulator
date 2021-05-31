@@ -234,6 +234,22 @@ int main(int argc, char **argv) {
         std::exit(1);
     }
 
+    if (use_cloud == true) {
+        try {
+            std::cerr << "Instantiating a CloudComputeService on CloudProviderHost..." << std::endl;
+            std::vector<std::string> cloud_hosts;
+            for (int i = 1; i < num_cloud_hosts + 1; i++) {
+                cloud_hosts.push_back("cloud_host_" + std::to_string(i));
+            }
+            auto cloud_service = new wrench::CloudComputeService(
+                "cloud_provider_host", cloud_hosts, "", {}, {});
+            // compute_services.insert(simulation.add(cloud_service));
+        } catch (std::invalid_argument &e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+            std::exit(1);
+        }
+    }
+
     // Instantiate a WMS
     auto wms = simulation.add(
             new SimpleWMS(std::unique_ptr<SimpleStandardJobScheduler>(
