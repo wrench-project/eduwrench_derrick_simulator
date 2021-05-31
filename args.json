@@ -1,13 +1,21 @@
 {
-  "num_hosts": 128,
-  "cores": 8,
   "workflow_file": "../workflows/bigger-montage-workflow.json",
-  "speed": "0.5217f, 0.6087f, 0.6957f, 0.7826f, 0.8696f, 0.9565f, 1f",
+  "num_hosts": 3,
+  "cores": 8,
   "min_cores_per_task": 4,
   "max_cores_per_task": 4,
   "pstate": 6,
+  "speed": "0.5217f, 0.6087f, 0.6957f, 0.7826f, 0.8696f, 0.9565f, 1f",
+  "value": "98:120, 98:130, 98:140, 98:150, 98:160, 98:170, 98:190",
   "energy_cost_per_mwh": 1000,
   "energy_co2_per_mwh": 1000,
-  "value": "98:120, 98:130, 98:140, 98:150, 98:160, 98:170, 98:190"
+  "use_cloud": true,
+  "num_cloud_hosts": 3,
+  "cloud_cores": 16,
+  "cloud_bandwidth": "1000EBps",
+  "cloud_pstate": 1,
+  "cloud_speed": "100Gf, 200Gf",
+  "cloud_value": "10.00:100.00,10.00:250.00",
+  "cloud_cost_per_mwh": 1000
 }
 

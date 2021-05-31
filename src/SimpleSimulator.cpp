@@ -41,23 +41,35 @@ int main(int argc, char **argv) {
 
     // number of compute nodes
     int num_hosts = j.at("num_hosts").get<int>();
-
     // the number of cores per compute node
     int cores = j.at("cores").get<int>();
-
-    // compute host speed
-    std::string speed = j.at("speed").get<std::string>();
     // pstate spec
     int pstate = j.at("pstate").get<int>();
-
+    // compute host speed
+    std::string speed = j.at("speed").get<std::string>();
     // pstate value
     std::string pstate_value = j.at("value").get<std::string>();
-
     // energy cost per MWh ($/MWh)
     double cost = j.at("energy_cost_per_mwh").get<double>();
-
     // energy CO2 per MWh (CO2/MWh)
     double co2 = j.at("energy_co2_per_mwh").get<double>();
+
+    // whether to use the cloud or not
+    bool use_cloud = j.at("use_cloud").get<bool>();
+    // number of cloud hosts
+    int num_cloud_hosts = j.at("num_cloud_hosts").get<int>();
+    // the number of cores per cloud host
+    int cloud_cores = j.at("cloud_cores").get<int>();
+    // cloud bandwidth
+    std::string cloud_bandwidth = j.at("cloud_bandwidth").get<std::string>();
+    // cloud pstate spec
+    int cloud_pstate = j.at("cloud_pstate").get<int>();
+    // cloud compute host speed
+    std::string cloud_speed = j.at("cloud_speed").get<std::string>();
+    // cloud pstate value
+    std::string cloud_pstate_value = j.at("cloud_value").get<std::string>();
+    // cloud energy cost per MWh ($/MWh)
+    double cloud_cost = j.at("cloud_cost_per_mwh").get<double>();
 
     // platform description file, written in XML following the SimGrid-defined DTD
     std::string xml = "<?xml version='1.0'?>\n"
@@ -75,9 +87,28 @@ int main(int argc, char **argv) {
                       "           </disk>\n"
                       "           <prop id=\"wattage_per_state\" value=\"10.00:100.00\"/>\n"
                       "           <prop id=\"wattage_off\" value=\"0\"/>\n"
-                      "       </host>\n";
+                      "       </host>\n\n";
 
-    xml.append("\n");
+    if (use_cloud == true) {
+        xml.append("       <host id=\"cloud_provider_host\" speed=\"1Gf\" pstate=\"0\" core=\"1\">\n"
+                   "           <disk id=\"hard_drive\" read_bw=\"100MBps\" write_bw=\"100MBps\">\n"
+                   "               <prop id=\"size\" value=\"5000GiB\"/>\n"
+                   "               <prop id=\"mount\" value=\"/\"/>\n"
+                   "           </disk>\n"
+                   "           <prop id=\"wattage_per_state\" value=\"10.00:100.00\"/>\n"
+                   "           <prop id=\"wattage_off\" value=\"0\"/>\n"
+                   "       </host>\n\n");
+        for (int i = 1; i < num_cloud_hosts + 1; i++) {
+            xml.append("       <host id=\"cloud_host_" + std::to_string(i)
+                       + "\" speed=\"" + cloud_speed + "\" pstate=\"" + std::to_string(cloud_pstate) + "\" core=\""
+                       + std::to_string(cloud_cores) + "\">\n" +
+                       "           <prop id=\"wattage_per_state\" value=\"" + cloud_pstate_value + "\"/>\n" +
+                       "           <prop id=\"wattage_off\" value=\"0\"/>\n" +
+                       "       </host>\n");
+        }
+        xml.append("\n");
+    }
+
     for (int i = 1; i < num_hosts + 1; i++) {
         xml.append("       <host id=\"compute_host_" + std::to_string(i)
                    + "\" speed=\"" + speed + "\" pstate=\"" + std::to_string(pstate) + "\" core=\""
@@ -94,9 +125,21 @@ int main(int argc, char **argv) {
                    + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
     }
 
-    // links between WMS Host and Storage host
+    // link between WMS Host and Storage host
     xml.append("       <link id=\"" + std::to_string(num_hosts + 1)
                + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
+
+    if (use_cloud == true) {
+        // links between each cloud compute host and cloud provider host
+        for (int i = num_hosts + 2; i < num_hosts + num_cloud_hosts + 2; i++) {
+            xml.append("       <link id=\"" + std::to_string(i)
+                       + "\" bandwidth=\"" + cloud_bandwidth + "\" latency=\"0us\"/>\n");
+        }
+        // link between WMS Host and Cloud Provider Host
+        xml.append("       <link id=\"" + std::to_string(num_hosts + num_cloud_hosts + 2)
+                   + "\" bandwidth=\"" + cloud_bandwidth + "\" latency=\"0us\"/>\n");
+    }
+
     xml.append("\n");
 
     // routes between each compute host and storage host (1 to hosts)
@@ -107,6 +150,18 @@ int main(int argc, char **argv) {
     // routes between WMS Host and Storage host
     xml.append("       <route src=\"WMSHost\" dst=\"storage_host\"> "
                "<link_ctn id=\"" + std::to_string(num_hosts + 1) + "\"/> </route>\n");
+
+    if (use_cloud == true) {
+        // routes between each cloud compute host and cloud provider host
+        for (int i = num_hosts + 2; i < num_hosts + num_cloud_hosts + 2; i++) {
+            xml.append("       <route src=\"cloud_host_" + std::to_string(i - num_hosts - 1) +
+                       "\" dst=\"cloud_provider_host\"> <link_ctn id=\"" + std::to_string(i) + "\"/> </route>\n");
+        }
+        // routes between WMS Host and Cloud Provider host
+        xml.append("       <route src=\"WMSHost\" dst=\"cloud_provider_host\"> "
+                   "<link_ctn id=\"" + std::to_string(num_hosts + 1) + "\"/> </route>\n");
+    }
+
     xml.append("\n");
 
     xml.append(
