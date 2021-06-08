@@ -243,7 +243,7 @@ int main(int argc, char **argv) {
             }
             auto cloud_service = new wrench::CloudComputeService(
                 "cloud_provider_host", cloud_hosts, "", {}, {});
-            // compute_services.insert(simulation.add(cloud_service));
+            compute_services.insert(simulation.add(cloud_service));
         } catch (std::invalid_argument &e) {
             std::cerr << "Error: " << e.what() << std::endl;
             std::exit(1);
@@ -256,6 +256,17 @@ int main(int argc, char **argv) {
                     new SimpleStandardJobScheduler(storage_service)),
                           nullptr, compute_services, storage_services, wms_host));
     wms->addWorkflow(workflow);
+    if (use_cloud == true) {
+        // number of cloud vm instances
+        int num_vm_instances = j.at("num_vm_instances").get<int>();
+        std::string cloud_tasks = j.at("cloud_tasks").get<std::string>();
+        wms->setNumVmInstances(num_vm_instances);
+        wms->setCloudTasks(cloud_tasks);
+    }
+    else {
+        wms->setNumVmInstances(0);
+        wms->setCloudTasks("");
+    }
 
     // Instantiate a file registry service
     std::string file_registry_service_host = hostname_list[(hostname_list.size() > 2) ? 1 : 0];

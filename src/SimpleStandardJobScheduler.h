@@ -24,9 +24,15 @@ public:
   void updateNumCoresAvailable(long increment);
   void setNumCoresAvailable(unsigned long num_cores);
   unsigned long getNumCoresAvailable();
+  int getNumVmInstances();
+  void setNumVmInstances(int num_vm_instances);
+  std::string getCloudTasks();
+  void setCloudTasks(std::string tasks);
 private:
   std::shared_ptr<wrench::StorageService> default_storage_service;
   unsigned long numCoresAvailable;
+  std::string cloud_tasks;
+  int num_vm_instances;
   // std::vector<std::shared_ptr<wrench::BareMetalComputeService>> compute_services_running_on_vms;
 };
 

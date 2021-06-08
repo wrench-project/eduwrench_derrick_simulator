@@ -26,7 +26,13 @@ public:
               const std::string &hostname);
     /** @brief The job manager */
     std::shared_ptr<wrench::JobManager> job_manager;
+    int getNumVmInstances();
+    void setNumVmInstances(int num_vm_instances);
+    std::string getCloudTasks();
+    void setCloudTasks(std::string tasks);
 private:
+    int num_vm_instances;
+    std::string cloud_tasks;
     int main() override;
     void processEventStandardJobFailure(std::shared_ptr<wrench::StandardJobFailedEvent> event) override;
     void processEventStandardJobCompletion(std::shared_ptr<wrench::StandardJobCompletedEvent> event) override;

@@ -54,6 +54,9 @@ int SimpleWMS::main() {
         throw std::runtime_error("WMS needs at least one compute service to run!");
     }
 
+    auto compute_service = *(this->getAvailableComputeServices<wrench::ComputeService>().begin());
+    auto cloud_service = *(this->getAvailableComputeServices<wrench::CloudComputeService>().rbegin());
+
     // Set the scheduler's available num cores
     // WARNING: This is only done for the first compute service (perhaps ugly?)
     ((SimpleStandardJobScheduler *)(this->getStandardJobScheduler()))->setNumCoresAvailable((*compute_services.begin())->getTotalNumCores());
@@ -62,6 +65,17 @@ int SimpleWMS::main() {
     auto storage_services = this->getAvailableStorageServices();
     if (storage_services.empty()) {
         throw std::runtime_error("WMS needs at least one storage service to run!");
+    }
+
+    // possible to have zero size arrays?
+    std::string cloud_vm[num_vm_instances];
+
+    if (SimpleWMS::getNumVmInstances() > 0) {
+        for (int i = 0; i < num_vm_instances; i++) {
+            cloud_vm[i] = cloud_service->createVM(4, 500000);
+        }
+        ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setNumVmInstances(SimpleWMS::getNumVmInstances());
+        ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setCloudTasks(cloud_tasks);
     }
 
     while (true) {
@@ -129,3 +143,36 @@ void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::Standa
     }
 }
 
+/**
+ * @brief Method to get the number of vm instances
+ * @return the number of vm instances
+ */
+int SimpleWMS::getNumVmInstances() {
+    return num_vm_instances;
+}
+
+/**
+ * @brief Method to set the number of vm instances
+ *
+ * @param num_vm_instances: number of vm instances to set
+ */
+void SimpleWMS::setNumVmInstances(int num_vm_instances) {
+    num_vm_instances = num_vm_instances;
+}
+
+/**
+ * @brief Method to get the string containing the tasks for the vm
+ * @return number of cloud vm tasks
+ */
+std::string SimpleWMS::getCloudTasks() {
+    return cloud_tasks;
+}
+
+/**
+ * @brief Method to set the string containing the cloud tasks
+ *
+ * @param tasks: string of cloud vm tasks
+ */
+void SimpleWMS::setCloudTasks(std::string tasks) {
+    cloud_tasks = tasks;
+}

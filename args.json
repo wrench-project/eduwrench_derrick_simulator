@@ -16,6 +16,9 @@
   "cloud_pstate": 1,
   "cloud_speed": "100Gf, 200Gf",
   "cloud_value": "10.00:100.00,10.00:250.00",
-  "cloud_cost_per_mwh": 1000
+  "cloud_cost_per_mwh": 1000,
+  "num_vm_instances": 4,
+  "vm_usage_duration": 10,
+  "cloud_tasks": "task1,task2,task3"
 }
 
