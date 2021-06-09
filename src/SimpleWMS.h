@@ -28,11 +28,12 @@ public:
     std::shared_ptr<wrench::JobManager> job_manager;
     int getNumVmInstances();
     void setNumVmInstances(int num_vm_instances);
-    std::string getCloudTasks();
+    bool isCloudTask();
     void setCloudTasks(std::string tasks);
 private:
     int num_vm_instances;
-    std::string cloud_tasks;
+    std::set<std::string> cloud_tasks;
+//    std::string cloud_tasks;
     int main() override;
     void processEventStandardJobFailure(std::shared_ptr<wrench::StandardJobFailedEvent> event) override;
     void processEventStandardJobCompletion(std::shared_ptr<wrench::StandardJobCompletedEvent> event) override;

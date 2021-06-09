@@ -31,7 +31,9 @@ public:
 private:
   std::shared_ptr<wrench::StorageService> default_storage_service;
   unsigned long numCoresAvailable;
-  std::string cloud_tasks;
+  // TODO: Move to a table of core availabilities (one entry per compute service)
+//  std::map<std::shared_ptr<wrench::BareMetalComputeService>, unsigned long> numCoresAvailable;
+  std::set<std::string> cloud_tasks;
   int num_vm_instances;
   // std::vector<std::shared_ptr<wrench::BareMetalComputeService>> compute_services_running_on_vms;
 };

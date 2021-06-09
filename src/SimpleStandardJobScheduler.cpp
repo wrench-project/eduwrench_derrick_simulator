@@ -115,11 +115,16 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
 
     }
 
+    // TODO: Update the "keeping track of available cores" to work for the local BMService
+    //  and all the remote BMServices (This Scheduler never knows about the CloudComputeService)
+
     auto storage_service = this->default_storage_service;
 
     WRENCH_INFO("About to submit jobs for %ld ready tasks", tasks.size());
 
     for (auto task: tasks) {
+
+        // TODO: Check if it's a cloud task or not
 
         // if not enough cores available (oversubscribing), go on to next task
         if (this->getNumCoresAvailable() < task->getMinNumCores()) {

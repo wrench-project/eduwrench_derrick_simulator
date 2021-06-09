@@ -68,12 +68,15 @@ int SimpleWMS::main() {
     }
 
     // possible to have zero size arrays?
+    // TODO: use a vector
     std::string cloud_vm[num_vm_instances];
 
     if (SimpleWMS::getNumVmInstances() > 0) {
         for (int i = 0; i < num_vm_instances; i++) {
-            cloud_vm[i] = cloud_service->createVM(4, 500000);
+             cloud_vm[i] = cloud_service->createVM(4, 500000);
+             // TODO: need to start VMs and record the pointers to the corresponding BareMetaComputeServices
         }
+
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setNumVmInstances(SimpleWMS::getNumVmInstances());
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setCloudTasks(cloud_tasks);
     }
@@ -82,6 +85,7 @@ int SimpleWMS::main() {
         // Get the ready tasks
         std::vector<wrench::WorkflowTask *> ready_tasks = this->getWorkflow()->getReadyTasks();
 
+        // TODO: Pass to this method the local BMService, and all BMServices on all the VMs
         this->getStandardJobScheduler()->scheduleTasks(compute_services, ready_tasks);
 
         // Wait for a workflow execution event, and process it
@@ -164,8 +168,8 @@ void SimpleWMS::setNumVmInstances(int num_vm_instances) {
  * @brief Method to get the string containing the tasks for the vm
  * @return number of cloud vm tasks
  */
-std::string SimpleWMS::getCloudTasks() {
-    return cloud_tasks;
+bool SimpleWMS::isCloudTask(std::string task_id) {
+    return (this->cloud_tasks.find(task_id) != this->cloud_tasks.end());
 }
 
 /**
@@ -174,5 +178,7 @@ std::string SimpleWMS::getCloudTasks() {
  * @param tasks: string of cloud vm tasks
  */
 void SimpleWMS::setCloudTasks(std::string tasks) {
-    cloud_tasks = tasks;
+    // TODO: split the string into strings
+    // Populate the set
+//    cloud_tasks = tasks;
 }

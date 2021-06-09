@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
     xml.append("       <route src=\"WMSHost\" dst=\"storage_host\"> "
                "<link_ctn id=\"" + std::to_string(num_hosts + 1) + "\"/> </route>\n");
 
-    if (use_cloud == true) {
+    if (use_cloud) {
         // routes between each cloud compute host and cloud provider host
         for (int i = num_hosts + 2; i < num_hosts + num_cloud_hosts + 2; i++) {
             xml.append("       <route src=\"cloud_host_" + std::to_string(i - num_hosts - 1) +
@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
         std::exit(1);
     }
 
-    if (use_cloud == true) {
+    if (use_cloud) {
         try {
             std::cerr << "Instantiating a CloudComputeService on CloudProviderHost..." << std::endl;
             std::vector<std::string> cloud_hosts;
@@ -256,7 +256,7 @@ int main(int argc, char **argv) {
                     new SimpleStandardJobScheduler(storage_service)),
                           nullptr, compute_services, storage_services, wms_host));
     wms->addWorkflow(workflow);
-    if (use_cloud == true) {
+    if (use_cloud) {
         // number of cloud vm instances
         int num_vm_instances = j.at("num_vm_instances").get<int>();
         std::string cloud_tasks = j.at("cloud_tasks").get<std::string>();
