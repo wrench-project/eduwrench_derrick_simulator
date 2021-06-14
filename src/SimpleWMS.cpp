@@ -79,6 +79,8 @@ int SimpleWMS::main() {
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setNumVmInstances(SimpleWMS::getNumVmInstances());
         this->convertCloudTasks(cloud_tasks);
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setCloudTasks(cloud_tasks_set);
+//        for(auto e : this->cloud_tasks_set)
+//            std::cout << e << ' ';
     }
 
     while (true) {
@@ -160,7 +162,7 @@ int SimpleWMS::getNumVmInstances() {
  * @param num_vm_instances: number of vm instances to set
  */
 void SimpleWMS::setNumVmInstances(int num_vm_instances) {
-    num_vm_instances = num_vm_instances;
+    this->num_vm_instances = num_vm_instances;
 }
 
 /**
