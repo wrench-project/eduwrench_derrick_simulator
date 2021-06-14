@@ -67,25 +67,24 @@ int SimpleWMS::main() {
         throw std::runtime_error("WMS needs at least one storage service to run!");
     }
 
-    // possible to have zero size arrays?
-    // TODO: use a vector
-    std::string cloud_vm[num_vm_instances];
+    vector<std::string> cloud_vm;
 
     if (SimpleWMS::getNumVmInstances() > 0) {
         for (int i = 0; i < num_vm_instances; i++) {
-             cloud_vm[i] = cloud_service->createVM(4, 500000);
-             // TODO: need to start VMs and record the pointers to the corresponding BareMetaComputeServices
+             cloud_vm.push_back(cloud_service->createVM(4, 500000));
+             // start vms and add the baremetal services from the vms to compute_services
+             compute_services.insert(cloud_service->startVM(cloud_vm.at(i)));
         }
 
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setNumVmInstances(SimpleWMS::getNumVmInstances());
-        ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setCloudTasks(cloud_tasks);
+        this->convertCloudTasks(cloud_tasks);
+        ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setCloudTasks(cloud_tasks_set);
     }
 
     while (true) {
         // Get the ready tasks
         std::vector<wrench::WorkflowTask *> ready_tasks = this->getWorkflow()->getReadyTasks();
 
-        // TODO: Pass to this method the local BMService, and all BMServices on all the VMs
         this->getStandardJobScheduler()->scheduleTasks(compute_services, ready_tasks);
 
         // Wait for a workflow execution event, and process it
@@ -165,20 +164,24 @@ void SimpleWMS::setNumVmInstances(int num_vm_instances) {
 }
 
 /**
- * @brief Method to get the string containing the tasks for the vm
- * @return number of cloud vm tasks
+ * @brief Method to convert string containing the cloud tasks to a vector of cloud tasks
+ *
+ * @param tasks: string of cloud vm tasks
  */
-bool SimpleWMS::isCloudTask(std::string task_id) {
-    return (this->cloud_tasks.find(task_id) != this->cloud_tasks.end());
+void SimpleWMS::convertCloudTasks(std::string tasks) {
+    stringstream ss(tasks);
+    while (ss.good()) {
+        string substr;
+        getline(ss, substr, ',');
+        cloud_tasks_set.insert(substr);
+    }
 }
 
 /**
- * @brief Method to set the string containing the cloud tasks
+ * @brief Method to set cloud_tasks
  *
  * @param tasks: string of cloud vm tasks
  */
 void SimpleWMS::setCloudTasks(std::string tasks) {
-    // TODO: split the string into strings
-    // Populate the set
-//    cloud_tasks = tasks;
+    cloud_tasks = tasks;
 }

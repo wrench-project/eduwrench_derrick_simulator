@@ -29,20 +29,21 @@ void SimpleStandardJobScheduler::setNumVmInstances(int num_vm_instances) {
 }
 
 /**
- * @brief Method to get the string containing the tasks for the vm
- * @return number of cloud vm tasks
+ * @brief Method to check if a task if a cloud task
+ * @param task_id: task name
+ * @return true if task_id is a cloud task, false if not
  */
-std::string SimpleStandardJobScheduler::getCloudTasks() {
-    return cloud_tasks;
+bool SimpleStandardJobScheduler::isCloudTask(std::string task_id) {
+    return (this->cloud_tasks_set.find(task_id) != this->cloud_tasks_set.end());
 }
 
 /**
- * @brief Method to set the string containing the cloud tasks
+ * @brief Method to pass the set of cloud tasks
  *
- * @param tasks: string of cloud vm tasks
+ * @param cloud_tasks_set: set of cloud tasks
  */
-void SimpleStandardJobScheduler::setCloudTasks(std::string tasks) {
-    cloud_tasks = tasks;
+void SimpleStandardJobScheduler::setCloudTasks(std::set<std::string> cloud_tasks_set) {
+    cloud_tasks_set = cloud_tasks_set;
 }
 
 /**
@@ -82,37 +83,29 @@ unsigned long SimpleStandardJobScheduler::getNumCoresAvailable() {
 void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
                                                const std::vector<wrench::WorkflowTask *> &tasks) {
 
+    std::vector<std::shared_ptr<wrench::ComputeService>> cs_vector(compute_services.begin(), compute_services.end());
+
     // Check that the right compute_services is passed
-    if (compute_services.size() != 1 || compute_services.size() != 2) {
-        throw std::runtime_error("This example Simple Scheduler requires one or two compute services");
+    if (compute_services.size() < 1) {
+        throw std::runtime_error("This example Simple Scheduler requires at least one compute service");
     }
 
     auto compute_service = *compute_services.begin();
     // check for bare metal service
     std::shared_ptr<wrench::BareMetalComputeService> baremetal_service;
     if (not(baremetal_service = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(compute_service))) {
-        throw std::runtime_error("This Scheduler can only handle a bare metal service");
+        throw std::runtime_error("This Scheduler can only handle bare metal services");
     }
 
-    std::string vm_tasks;
-    vector<std::string> vector_vm_tasks;
-
     if (SimpleStandardJobScheduler::getNumVmInstances() > 0) {
-        auto cloud_compute_service = *compute_services.rbegin();
-        // check for cloud service
-        std::shared_ptr<wrench::CloudComputeService> cloud_service;
-        if (not(cloud_service = std::dynamic_pointer_cast<wrench::CloudComputeService>(cloud_compute_service))) {
-            throw std::runtime_error("This Scheduler can only handle a cloud compute service");
+        // check for the vm created bare metal services
+        for (int k = 1; k = compute_services.size() + 1; k++) {
+            auto compute_service = cs_vector.at(k);
+            std::shared_ptr<wrench::BareMetalComputeService> baremetal_service;
+            if (not(baremetal_service = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(compute_service))) {
+                throw std::runtime_error("This Scheduler can only handle bare metal services");
+            }
         }
-
-        vm_tasks = SimpleStandardJobScheduler::getCloudTasks();
-        stringstream ss(vm_tasks);
-        while (ss.good()) {
-            string substr;
-            getline(ss, substr, ',');
-            vector_vm_tasks.push_back(substr);
-        }
-
     }
 
     // TODO: Update the "keeping track of available cores" to work for the local BMService
@@ -123,8 +116,6 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
     WRENCH_INFO("About to submit jobs for %ld ready tasks", tasks.size());
 
     for (auto task: tasks) {
-
-        // TODO: Check if it's a cloud task or not
 
         // if not enough cores available (oversubscribing), go on to next task
         if (this->getNumCoresAvailable() < task->getMinNumCores()) {
@@ -153,9 +144,22 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         std::map<std::string, std::string> service_specific_argument;
         service_specific_argument[task->getID()] = std::to_string(num_cores);
         if (SimpleStandardJobScheduler::getNumVmInstances() > 0) {
-            // check if names from workflow json match args.json task names
-            // if yes, submit job to the vms
-            // else, submit job to bare metal service
+            // check if task is a cloud task
+            if (isCloudTask(task->getID())) {
+                // submit job to one of cloud vm bms
+                for (int j = 1; j < num_vm_instances + 1; j++) {
+                    try {
+                        StandardJobScheduler::getJobManager()->submitJob(
+                                standard_job, cs_vector.at(j), service_specific_argument);
+                        break;
+                    } catch (wrench::WorkflowExecutionException &e) {
+                        continue;
+                    }
+                }
+            } else {
+                StandardJobScheduler::getJobManager()->submitJob(
+                        standard_job, compute_service, service_specific_argument);
+            }
         } else {
             StandardJobScheduler::getJobManager()->submitJob(
                     standard_job, compute_service, service_specific_argument);

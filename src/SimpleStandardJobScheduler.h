@@ -26,16 +26,16 @@ public:
   unsigned long getNumCoresAvailable();
   int getNumVmInstances();
   void setNumVmInstances(int num_vm_instances);
-  std::string getCloudTasks();
-  void setCloudTasks(std::string tasks);
+  bool isCloudTask(std::string task_id);
+  void setCloudTasks(std::set<std::string> cloud_tasks_set);
 private:
   std::shared_ptr<wrench::StorageService> default_storage_service;
   unsigned long numCoresAvailable;
   // TODO: Move to a table of core availabilities (one entry per compute service)
 //  std::map<std::shared_ptr<wrench::BareMetalComputeService>, unsigned long> numCoresAvailable;
-  std::set<std::string> cloud_tasks;
+  std::set<std::string> cloud_tasks_set;
   int num_vm_instances;
-  // std::vector<std::shared_ptr<wrench::BareMetalComputeService>> compute_services_running_on_vms;
+
 };
 
 #endif //MY_SIMPLESCHEDULER_H
