@@ -133,14 +133,13 @@ int main(int argc, char **argv) {
         // links between each cloud compute host and cloud provider host
         for (int i = num_hosts + 2; i < num_hosts + num_cloud_hosts + 2; i++) {
             xml.append("       <link id=\"" + std::to_string(i)
-                       + "\" bandwidth=\"" + cloud_bandwidth + "\" latency=\"0us\"/>\n");
+                       + "\" bandwidth=\"5000GBps\" latency=\"0us\"/>\n");
         }
-        // link between WMS Host and Cloud Provider Host
-        xml.append("       <link id=\"" + std::to_string(num_hosts + num_cloud_hosts + 2)
-                   + "\" bandwidth=\"" + cloud_bandwidth + "\" latency=\"0us\"/>\n");
+        // WIDE_AREA_LINK
+        xml.append("       <link id=\"WIDE_AREA_LINK\" bandwidth=\"" + cloud_bandwidth + "\" latency=\"30ms\"/>\n");
         // link between Storage Host and Cloud Provider Host
-        xml.append("       <link id=\"" + std::to_string(num_hosts + num_cloud_hosts + 3)
-                   + "\" bandwidth=\"" + cloud_bandwidth + "\" latency=\"0us\"/>\n");
+//        xml.append("       <link id=\"" + std::to_string(num_hosts + num_cloud_hosts + 3)
+//                   + "\" bandwidth=\"" + cloud_bandwidth + "\" latency=\"0us\"/>\n");
     }
 
     xml.append("\n");
@@ -160,12 +159,18 @@ int main(int argc, char **argv) {
             xml.append("       <route src=\"cloud_host_" + std::to_string(i - num_hosts - 1) +
                        "\" dst=\"cloud_provider_host\"> <link_ctn id=\"" + std::to_string(i) + "\"/> </route>\n");
         }
+        // routes between each cloud compute host and Storage Host host
+        for (int i = num_hosts + 2; i < num_hosts + num_cloud_hosts + 2; i++) {
+            xml.append("       <route src=\"cloud_host_" + std::to_string(i - num_hosts - 1) +
+                       "\" dst=\"storage_host\"> <link_ctn id=\"" + std::to_string(i) + "\"/> <link_ctn id=\"WIDE_AREA_LINK\"/> </route>\n");
+        }
         // route between WMS Host and Cloud Provider host
         xml.append("       <route src=\"WMSHost\" dst=\"cloud_provider_host\"> "
-                   "<link_ctn id=\"" + std::to_string(num_hosts + num_cloud_hosts + 2) + "\"/> </route>\n");
+                   "<link_ctn id=\"WIDE_AREA_LINK\"/> </route>\n");
         // route between Storage Host and Cloud Provider Host
         xml.append("       <route src=\"storage_host\" dst=\"cloud_provider_host\"> "
-                   "<link_ctn id=\"" + std::to_string(num_hosts + num_cloud_hosts + 3) + "\"/> </route>\n");
+                   "<link_ctn id=\"WIDE_AREA_LINK\"/> </route>\n");
+//                   "<link_ctn id=\"" + std::to_string(num_hosts + num_cloud_hosts + 3) + "\"/> </route>\n");
     }
 
     xml.append("\n");
