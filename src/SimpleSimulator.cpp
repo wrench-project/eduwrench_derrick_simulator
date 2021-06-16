@@ -12,6 +12,8 @@
 #include "SimpleWMS.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <chrono>
+#include <ratio>
 
 static bool ends_with(const std::string& str, const std::string& suffix) {
     return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
@@ -308,7 +310,7 @@ int main(int argc, char **argv) {
         return 0;
     }
     auto end = std::chrono::high_resolution_clock::now();
-    auto duration = duration_cast<std::chrono::microseconds>(end - start);
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cerr << "Simulation done!" << std::endl;
 
     // TODO: PRINT FOR EACH TASK WHERE IT WAS EXECUTED

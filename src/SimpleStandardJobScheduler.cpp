@@ -93,7 +93,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
     // Check that all compute services are BareMetal
     for (auto const &cs : compute_services) {
         if (not(std::dynamic_pointer_cast<wrench::BareMetalComputeService>(cs))) {
-            throw std::runtime_error("This Scheduler can only handle bare metal services");
+            // throw std::runtime_error("This Scheduler can only handle bare metal services");
         }
     }
 
