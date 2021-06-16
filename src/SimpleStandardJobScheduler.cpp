@@ -86,12 +86,12 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
     std::vector<std::shared_ptr<wrench::ComputeService>> cs_vector(compute_services.begin(), compute_services.end());
 
     // Check that the right compute_services is passed
-    if (compute_services.size() < 1) {
+    if (compute_services.empty()) {
         throw std::runtime_error("This example Simple Scheduler requires at least one compute service");
     }
 
+    // check for the bare metal service
     auto compute_service = *compute_services.begin();
-    // check for bare metal service
     std::shared_ptr<wrench::BareMetalComputeService> baremetal_service;
     if (not(baremetal_service = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(compute_service))) {
         throw std::runtime_error("This Scheduler can only handle bare metal services");
@@ -123,9 +123,12 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
     for (auto task: tasks) {
 
         // if not enough cores available (oversubscribing), go on to next task
+        // TODO: If cloud task: check that at least one VM is available
+        // TODO: If non-could task: check that a last this many cores area available
         if (this->getNumCoresAvailable() < task->getMinNumCores()) {
             continue;
         }
+        // TODO: we should ahve a variable: selected_compute_service  to which we submit the task
 
         /* Create a standard job for the task */
         WRENCH_INFO("Creating a job for task %s", task->getID().c_str());

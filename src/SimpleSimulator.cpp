@@ -311,6 +311,11 @@ int main(int argc, char **argv) {
     auto duration = duration_cast<std::chrono::microseconds>(end - start);
     std::cerr << "Simulation done!" << std::endl;
 
+    // TODO: PRINT FOR EACH TASK WHERE IT WAS EXECUTED
+    for (auto const &t : workflow->getTasks()) {
+        std::cerr << t->getID() << " RAN ON " << t->getExecutionHost() << "\n";
+    }
+
     auto exit_tasks = workflow->getExitTaskMap();
     double workflow_finish_time = 0.0;
     for (auto const &t : exit_tasks) {
