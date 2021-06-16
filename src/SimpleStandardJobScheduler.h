@@ -30,7 +30,9 @@ public:
   void setCloudTasks(std::set<std::string> cloud_tasks_set);
 private:
   std::shared_ptr<wrench::StorageService> default_storage_service;
+  // number of cores available on the local cluster
   unsigned long numCoresAvailable;
+
   // TODO: Move to a table of core availabilities (one entry per compute service)
 //  std::map<std::shared_ptr<wrench::BareMetalComputeService>, unsigned long> numCoresAvailable;
   std::set<std::string> cloud_tasks_set;

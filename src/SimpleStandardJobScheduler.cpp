@@ -85,17 +85,23 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
 
     std::vector<std::shared_ptr<wrench::ComputeService>> cs_vector(compute_services.begin(), compute_services.end());
 
-    // Check that the right compute_services is passed
+    // Check that the at least one compute_services is passed
     if (compute_services.empty()) {
         throw std::runtime_error("This example Simple Scheduler requires at least one compute service");
     }
 
-    // check for the bare metal service
-    auto compute_service = *compute_services.begin();
-    std::shared_ptr<wrench::BareMetalComputeService> baremetal_service;
-    if (not(baremetal_service = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(compute_service))) {
-        throw std::runtime_error("This Scheduler can only handle bare metal services");
+    // Check that all compute services are BareMetal
+    for (auto const &cs : compute_services) {
+        if (not(std::dynamic_pointer_cast<wrench::BareMetalComputeService>(cs))) {
+            throw std::runtime_error("This Scheduler can only handle bare metal services");
+        }
     }
+
+    // Keep track of the local_cluster_cs
+    auto local_cluster_cs = *compute_services.begin();
+    // Keep track of the cloud VM cs-s
+    auto vm_css = compute_services;
+    vm_css.erase(local_cluster_cs);
 
 //    if (SimpleStandardJobScheduler::getNumVmInstances() > 0) {
 //        // check for the vm created bare metal services
@@ -107,6 +113,8 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
 //            }
 //        }
 //    }
+
+
 
     // TODO: Update the "keeping track of available cores" to work for the local BMService
     //  and all the remote BMServices (This Scheduler never knows about the CloudComputeService)
@@ -128,7 +136,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         if (this->getNumCoresAvailable() < task->getMinNumCores()) {
             continue;
         }
-        // TODO: we should ahve a variable: selected_compute_service  to which we submit the task
+        // TODO: we should have a variable: selected_compute_service  to which we submit the task
 
         /* Create a standard job for the task */
         WRENCH_INFO("Creating a job for task %s", task->getID().c_str());
@@ -168,11 +176,11 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
                 }
             } else {
                 StandardJobScheduler::getJobManager()->submitJob(
-                        standard_job, compute_service, service_specific_argument);
+                        standard_job, local_cluster_cs, service_specific_argument);
             }
         } else {
             StandardJobScheduler::getJobManager()->submitJob(
-                    standard_job, compute_service, service_specific_argument);
+                    standard_job, local_cluster_cs, service_specific_argument);
         }
         // decrement num cores needed for task from numCoresAvailable
         updateNumCoresAvailable(-1 * (signed long)num_cores);
