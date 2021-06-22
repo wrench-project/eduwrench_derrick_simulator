@@ -57,10 +57,6 @@ int SimpleWMS::main() {
     auto compute_service = *(this->getAvailableComputeServices<wrench::ComputeService>().begin());
     auto cloud_service = *(this->getAvailableComputeServices<wrench::CloudComputeService>().rbegin());
 
-    // Set the scheduler's available num cores
-    // WARNING: This is only done for the first compute service (perhaps ugly?)
-    ((SimpleStandardJobScheduler *)(this->getStandardJobScheduler()))->setNumCoresAvailable((*compute_services.begin())->getTotalNumCores());
-
     // Get the available storage services
     auto storage_services = this->getAvailableStorageServices();
     if (storage_services.empty()) {
@@ -82,6 +78,9 @@ int SimpleWMS::main() {
 //        for(auto e : this->cloud_tasks_set)
 //            std::cout << e << ' ';
     }
+
+    // Set the num cores available for each compute service
+    ((SimpleStandardJobScheduler *) (this->getStandardJobScheduler()))->createCoresTracker(compute_services);
 
     while (true) {
         // Get the ready tasks
@@ -124,8 +123,9 @@ void SimpleWMS::processEventStandardJobFailure(std::shared_ptr<wrench::StandardJ
     WRENCH_INFO("As a result, the following tasks have failed:");
     for (auto const &task : job->getTasks()) {
         WRENCH_INFO(" - %s", task->getID().c_str());
+        auto cs = ((SimpleStandardJobScheduler *) this->getStandardJobScheduler()) -> tasks_run_on.find(task)->second;
         ((SimpleStandardJobScheduler *) this->getStandardJobScheduler())
-                ->updateNumCoresAvailable(task->getNumCoresAllocated());
+                ->updateNumCoresAvailable(cs, task->getNumCoresAllocated());
     }
     throw std::runtime_error("A job failure has occurred... this should never happen!");
 }
@@ -143,8 +143,9 @@ void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::Standa
     WRENCH_INFO("As a result, the following tasks have completed:");
     for (auto const &task : job->getTasks()) {
         WRENCH_INFO(" - %s", task->getID().c_str());
+        auto cs = ((SimpleStandardJobScheduler *) this->getStandardJobScheduler()) -> tasks_run_on.find(task)->second;
         ((SimpleStandardJobScheduler *) this->getStandardJobScheduler())
-        ->updateNumCoresAvailable(task->getNumCoresAllocated());
+        ->updateNumCoresAvailable(cs, task->getNumCoresAllocated());
     }
 }
 
