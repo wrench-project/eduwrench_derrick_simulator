@@ -201,15 +201,21 @@ int main(int argc, char **argv) {
     int max_cores = j.at("max_cores_per_task").get<int>();
 
     if (ends_with(workflow_file, "dax")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f", false, min_cores,
-                                                                        max_cores);
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromDAX(workflow_file, "1f", false,
+                                                                        min_cores, max_cores, true);
     } else if (ends_with(workflow_file, "json")) {
-        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", false, min_cores,
-                                                                         max_cores);
+        workflow = wrench::PegasusWorkflowParser::createWorkflowFromJSON(workflow_file, "1f", false,
+                                                                         min_cores, max_cores, true);
     } else {
         std::cerr << "Workflow file name must end with '.dax' or '.json'" << std::endl;
         exit(1);
     }
+
+    // Fix the min/max #cores for each task, in case the Workflow's JSON specified core numbers (which we don't want)
+    for (auto const &t : workflow->getTasks()) {
+
+    }
+
     std::cerr << "The workflow has " << workflow->getNumberOfTasks() << " tasks " << std::endl;
 
     // Reading and parsing the platform description file to instantiate a simulated platform

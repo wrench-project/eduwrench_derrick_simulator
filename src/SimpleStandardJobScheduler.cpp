@@ -101,10 +101,16 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
 
     // Keep track of the local_cluster_cs
     auto local_cluster_cs = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(*compute_services.begin());
+    WRENCH_INFO("1---> %s", local_cluster_cs->getName().c_str());
     // Keep track of the cloud VM cs-s
     std::set<std::shared_ptr<wrench::BareMetalComputeService>> vm_css;
     for (auto const &cs : compute_services) {
-        vm_css.insert(std::dynamic_pointer_cast<wrench::BareMetalComputeService>(cs));
+        auto vm_cs = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(cs);
+        if (not vm_cs) {
+            continue;
+        }
+        vm_css.insert(vm_cs);
+        WRENCH_INFO("2---> %s", vm_cs->getName().c_str());
     }
     vm_css.erase(local_cluster_cs);
 
@@ -133,23 +139,31 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
 
     for (auto task: tasks) {
 
-        std::shared_ptr<wrench::BareMetalComputeService> selected_cs;
+        std::shared_ptr<wrench::BareMetalComputeService> selected_cs = nullptr;
+        WRENCH_INFO("Trying to schedule task %s (cloud=%d)", task->getID().c_str(), isCloudTask(task->getID()));
 
         // check if task is a cloud task
         // if it is, look for available cloud created bmcs
         // if one is found, set selected_cs to it and break; if not, continue to next task
         if (isCloudTask(task->getID())) {
             for (auto cs : vm_css) {
-                if (this->getNumCoresAvailable(cs) == task->getMinNumCores()) {
+                WRENCH_INFO("CS %s: %ld cores (task min: %ld)",
+                    cs->getName().c_str(),
+                    this->getNumCoresAvailable(cs), task->getMinNumCores());
+                if (this->getNumCoresAvailable(cs) >= task->getMinNumCores()) {
                     selected_cs = cs;
                     break;
                 }
             }
-            continue;
+            if (selected_cs == nullptr) {
+                WRENCH_INFO("The task was a cloud task, but couldn't be scheduled [skipping it]");
+                continue;
+            }
         }
         else {
             // if not enough cores available (oversubscribing), go on to next task
             if (this->getNumCoresAvailable(local_cluster_cs) < task->getMinNumCores()) {
+                WRENCH_INFO("The task was NOT a cloud task, but couldn't be scheduled [skipping it]");
                 continue;
             }
             selected_cs = local_cluster_cs;
@@ -175,7 +189,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         WRENCH_INFO("Submitting the job to the compute service");
         // unsigned long num_cores = 1;
         std::map<std::string, std::string> service_specific_argument;
-        service_specific_argument[task->getID()] = std::to_string(task->getNumCoresAllocated());
+        service_specific_argument[task->getID()] = std::to_string(task->getMinNumCores());
 
         StandardJobScheduler::getJobManager()->submitJob(
                 standard_job, selected_cs, service_specific_argument);
@@ -183,7 +197,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         tasks_run_on.insert({task, selected_cs});
 
         // decrement num cores needed for task from numCoresAvailable
-        updateNumCoresAvailable(selected_cs, -1 * (signed long)task->getNumCoresAllocated());
+        updateNumCoresAvailable(selected_cs, -1 * (signed long)task->getMinNumCores());
 
     }
     WRENCH_INFO("Done with scheduling tasks as standard jobs");
