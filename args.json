@@ -19,6 +19,6 @@
   "cloud_cost_per_mwh": 1000,
   "num_vm_instances": 4,
   "vm_usage_duration": 10,
-  "cloud_tasks": "mProject_00000001,mProject_00000002,mProject_00000003"
+  "cloud_tasks": "mProject_00000001,mProject_00000002,mProject_00000003,mProject_00000004,mProject_00000005,mProject_00000006,mProject_00000007,mProject_00000008,mProject_00000009,mProject_00000010,mProject_00000011,mProject_00000012,mProject_00000013,mProject_00000014,mProject_00000015"
 }
 

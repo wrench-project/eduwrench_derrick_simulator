@@ -77,8 +77,7 @@ int SimpleWMS::main() {
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setNumVmInstances(SimpleWMS::getNumVmInstances());
         this->convertCloudTasks(cloud_tasks);
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setCloudTasks(cloud_tasks_set);
-//        for(auto e : this->cloud_tasks_set)
-//            std::cout << e << ' ';
+
     }
 
     // Set the num cores available for each compute service
@@ -147,7 +146,7 @@ void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::Standa
         WRENCH_INFO(" - %s", task->getID().c_str());
         auto cs = ((SimpleStandardJobScheduler *) this->getStandardJobScheduler()) -> tasks_run_on.find(task)->second;
         ((SimpleStandardJobScheduler *) this->getStandardJobScheduler())
-        ->updateNumCoresAvailable(cs, task->getNumCoresAllocated());
+        ->updateNumCoresAvailable(cs, task->getMinNumCores());
     }
 }
 

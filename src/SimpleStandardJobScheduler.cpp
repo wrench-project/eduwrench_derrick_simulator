@@ -51,7 +51,7 @@ void SimpleStandardJobScheduler::setCloudTasks(std::set<std::string> cloud_tasks
  * @param cs: the compute service to find
  * @param increment: positive or negative increment
  */
-void SimpleStandardJobScheduler::updateNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> &cs, long increment) {
+void SimpleStandardJobScheduler::updateNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> cs, long increment) {
     this->numCoresAvailable.find(cs)->second += increment;
 }
 
@@ -60,7 +60,7 @@ void SimpleStandardJobScheduler::updateNumCoresAvailable(std::shared_ptr<wrench:
  * @param cs: the compute service to find
  * @return a number of cores
  */
-unsigned long SimpleStandardJobScheduler::getNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> &cs) {
+unsigned long SimpleStandardJobScheduler::getNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> cs) {
     return this->numCoresAvailable.find(cs)->second;
 }
 
@@ -152,6 +152,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
                     this->getNumCoresAvailable(cs), task->getMinNumCores());
                 if (this->getNumCoresAvailable(cs) >= task->getMinNumCores()) {
                     selected_cs = cs;
+//                    std::cout << "here: " << getNumCoresAvailable(selected_cs) << std::endl;
                     break;
                 }
             }
@@ -168,6 +169,11 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
             }
             selected_cs = local_cluster_cs;
         }
+
+        // decrement num cores needed for task from numCoresAvailable
+        updateNumCoresAvailable(selected_cs, -1 * (signed long)task->getMinNumCores());
+
+        // std::cout << getNumCoresAvailable(selected_cs) << std::endl;
 
         /* Create a standard job for the task */
         WRENCH_INFO("Creating a job for task %s", task->getID().c_str());
@@ -194,11 +200,12 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         StandardJobScheduler::getJobManager()->submitJob(
                 standard_job, selected_cs, service_specific_argument);
 
+        if (isCloudTask(task->getID())) {
+            // since bms are created in code, we need to tell the task which bms it ran on,
+            // instead of it just knowing it ran on the cloud
+            task->setExecutionHost(selected_cs->getName());
+        }
         tasks_run_on.insert({task, selected_cs});
-
-        // decrement num cores needed for task from numCoresAvailable
-        updateNumCoresAvailable(selected_cs, -1 * (signed long)task->getMinNumCores());
-
     }
     WRENCH_INFO("Done with scheduling tasks as standard jobs");
     // std::cout << tasks_run << std::endl;
