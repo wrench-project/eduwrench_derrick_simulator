@@ -276,12 +276,6 @@ int main(int argc, char **argv) {
                           nullptr, compute_services, storage_services, wms_host));
     wms->addWorkflow(workflow);
 
-    // insert the cloud hosts into the cloudHostToBms map, so we can keep track of which cloud host
-    // corresponds to which cloud created bare metal service
-    for (int i = 1; i < num_cloud_hosts + 1; i++) {
-        wms->cloudHostToBms.insert({"cloud_host_" + std::to_string(i), ""});
-    }
-
     if (use_cloud) {
         // number of cloud vm instances
         int num_vm_instances = j.at("num_vm_instances").get<int>();

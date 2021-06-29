@@ -30,7 +30,6 @@ public:
     void setNumVmInstances(int num_vm_instances);
     void convertCloudTasks(std::string tasks);
     void setCloudTasks(std::string tasks);
-    std::map<string, string> cloudHostToBms;
 private:
     int num_vm_instances;
     std::set<std::string> cloud_tasks_set;
