@@ -12,6 +12,22 @@
 XBT_LOG_NEW_DEFAULT_CATEGORY(simple_scheduler, "Log category for Simple Scheduler");
 
 /**
+  * @brief Get a reference to the job manager to be used by this scheduler (nullptr: none is used)
+  * @return a job manager
+  */
+std::shared_ptr<wrench::JobManager> SimpleStandardJobScheduler::getJobManager() {
+    return this->job_manager;
+}
+
+/**
+  * @brief Set a reference to the job manager to be used by this scheduler (nullptr: none is used)
+  * @param job_manager: a job manager
+  */
+void SimpleStandardJobScheduler::setJobManager(std::shared_ptr<wrench::JobManager> job_manager) {
+    this->job_manager = job_manager;
+}
+
+/**
  * @brief Method to get the number of vm instances
  * @return the number of vm instances
  */
@@ -84,27 +100,31 @@ void SimpleStandardJobScheduler::createCoresTracker(std::set<std::shared_ptr<wre
  *
  * @throw std::runtime_error
  */
-void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
+void SimpleStandardJobScheduler::scheduleTasks(const std::shared_ptr<wrench::ComputeService> &local_cs,
+                                               const std::set<std::shared_ptr<wrench::ComputeService>> &vm_created_cs,
                                                const std::vector<wrench::WorkflowTask *> &tasks) {
 
     // Check that the at least one compute_services is passed
-    if (compute_services.empty()) {
+    if (local_cs == nullptr) {
         throw std::runtime_error("This example Simple Scheduler requires at least one compute service");
     }
 
     // Check that all compute services are BareMetal
-    for (auto const &cs : compute_services) {
+    if (not(std::dynamic_pointer_cast<wrench::BareMetalComputeService>(local_cs))) {
+        // throw std::runtime_error("This Scheduler can only handle bare metal services");
+    }
+    for (auto const &cs : vm_created_cs) {
         if (not(std::dynamic_pointer_cast<wrench::BareMetalComputeService>(cs))) {
             // throw std::runtime_error("This Scheduler can only handle bare metal services");
         }
     }
 
     // Keep track of the local_cluster_cs
-    auto local_cluster_cs = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(*compute_services.begin());
+    auto local_cluster_cs = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(local_cs);
     WRENCH_INFO("1---> %s", local_cluster_cs->getName().c_str());
     // Keep track of the cloud VM cs-s
     std::set<std::shared_ptr<wrench::BareMetalComputeService>> vm_css;
-    for (auto const &cs : compute_services) {
+    for (auto const &cs : vm_created_cs) {
         auto vm_cs = std::dynamic_pointer_cast<wrench::BareMetalComputeService>(cs);
         if (not vm_cs) {
             continue;
@@ -112,7 +132,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         vm_css.insert(vm_cs);
         WRENCH_INFO("2---> %s", vm_cs->getName().c_str());
     }
-    vm_css.erase(local_cluster_cs);
+//    vm_css.erase(local_cluster_cs);
 
 //    if (SimpleStandardJobScheduler::getNumVmInstances() > 0) {
 //        // check for the vm created bare metal services
@@ -189,7 +209,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         }
 
         /* Create the job  */
-        auto standard_job = StandardJobScheduler::getJobManager()->createStandardJob(task, file_locations);
+        auto standard_job = this->job_manager->createStandardJob(task, file_locations);
 
         /* Submit the job to the compute service, using ONE core */
         WRENCH_INFO("Submitting the job to the compute service");
@@ -197,7 +217,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::set<std::shared_ptr<wr
         std::map<std::string, std::string> service_specific_argument;
         service_specific_argument[task->getID()] = std::to_string(task->getMinNumCores());
 
-        StandardJobScheduler::getJobManager()->submitJob(
+        this->job_manager->submitJob(
                 standard_job, selected_cs, service_specific_argument);
 
         if (isCloudTask(task->getID())) {

@@ -13,12 +13,13 @@
 #include <wrench-dev.h>
 #include "SimpleWMS.h"
 
-class SimpleStandardJobScheduler : public wrench::StandardJobScheduler {
+class SimpleStandardJobScheduler {
 public:
   SimpleStandardJobScheduler(std::shared_ptr<wrench::StorageService> default_storage_service) :
           default_storage_service(default_storage_service) {}
 
-  void scheduleTasks(const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
+  void scheduleTasks(const std::shared_ptr<wrench::ComputeService> &local_cs,
+                     const std::set<std::shared_ptr<wrench::ComputeService>> &vm_created_cs,
                      const std::vector<wrench::WorkflowTask *> &tasks);
 
   void updateNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> cs, long increment);
@@ -29,12 +30,15 @@ public:
   bool isCloudTask(std::string task_id);
   void setCloudTasks(std::set<std::string> cloud_tasks_set);
   std::map<wrench::WorkflowTask *, std::shared_ptr<wrench::BareMetalComputeService>> tasks_run_on;
+  std::shared_ptr<wrench::JobManager> getJobManager();
+  void setJobManager(std::shared_ptr<wrench::JobManager> job_manager);
 private:
   std::shared_ptr<wrench::StorageService> default_storage_service;
 
   std::map<std::shared_ptr<wrench::BareMetalComputeService>, long> numCoresAvailable;
   std::set<std::string> cloud_tasks_set;
   int num_vm_instances;
+  std::shared_ptr<wrench::JobManager> job_manager;
 };
 
 #endif //MY_SIMPLESCHEDULER_H

@@ -19,11 +19,13 @@ XBT_LOG_NEW_DEFAULT_CATEGORY(simple_wms, "Log category for Simple WMS");
  */
 SimpleWMS::SimpleWMS(std::unique_ptr<wrench::StandardJobScheduler> standard_job_scheduler,
                      std::unique_ptr<wrench::PilotJobScheduler> pilot_job_scheduler,
+                     std::unique_ptr<SimpleStandardJobScheduler> ss_job_scheduler,
                      const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
                      const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
                      const std::string &hostname) : wrench::WMS(
         std::move(standard_job_scheduler),
         std::move(pilot_job_scheduler),
+        std::move(ss_job_scheduler),
         compute_services,
         storage_services,
         {}, nullptr,
@@ -66,12 +68,14 @@ int SimpleWMS::main() {
     }
 
     vector<std::string> cloud_vm;
+    std::set<std::shared_ptr<wrench::ComputeService>> vm_css;
 
     if (SimpleWMS::getNumVmInstances() > 0) {
         for (int i = 0; i < num_vm_instances; i++) {
              cloud_vm.push_back(cloud_service->createVM(4, 500000));
              // start vms and add the baremetal services from the vms to compute_services
-             compute_services.insert(cloud_service->startVM(cloud_vm.at(i)));
+             // compute_services.insert(cloud_service->startVM(cloud_vm.at(i)));
+             vm_css.insert(cloud_service->startVM(cloud_vm.at(i)));
         }
 
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setNumVmInstances(SimpleWMS::getNumVmInstances());
@@ -87,7 +91,7 @@ int SimpleWMS::main() {
         // Get the ready tasks
         std::vector<wrench::WorkflowTask *> ready_tasks = this->getWorkflow()->getReadyTasks();
 
-        this->getStandardJobScheduler()->scheduleTasks(compute_services, ready_tasks);
+        ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->scheduleTasks(compute_service, vm_css, ready_tasks);
 
         // Wait for a workflow execution event, and process it
         try {

@@ -11,6 +11,7 @@
 #define MY_SIMPLEWMS_H
 
 #include <wrench-dev.h>
+#include "SimpleStandardJobScheduler.h"
 
 class Simulation;
 
@@ -21,6 +22,7 @@ class SimpleWMS : public wrench::WMS {
 public:
     SimpleWMS(std::unique_ptr<wrench::StandardJobScheduler> standard_job_scheduler,
               std::unique_ptr<wrench::PilotJobScheduler> pilot_job_scheduler,
+              std::unique_ptr<SimpleStandardJobScheduler> ss_job_scheduler,
               const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
               const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
               const std::string &hostname);
