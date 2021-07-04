@@ -20,9 +20,7 @@ class Simulation;
  */
 class SimpleWMS : public wrench::WMS {
 public:
-    SimpleWMS(std::unique_ptr<wrench::StandardJobScheduler> standard_job_scheduler,
-              std::unique_ptr<wrench::PilotJobScheduler> pilot_job_scheduler,
-              std::unique_ptr<SimpleStandardJobScheduler> ss_job_scheduler,
+    SimpleWMS(std::unique_ptr<SimpleStandardJobScheduler> ss_job_scheduler,
               const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
               const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
               const std::string &hostname);
@@ -33,6 +31,7 @@ public:
     void convertCloudTasks(std::string tasks);
     void setCloudTasks(std::string tasks);
 private:
+    std::unique_ptr<SimpleStandardJobScheduler> ss_job_scheduler;
     int num_vm_instances;
     std::set<std::string> cloud_tasks_set;
     std::string cloud_tasks;

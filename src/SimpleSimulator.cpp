@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
     auto wms = simulation.add(
             new SimpleWMS(std::unique_ptr<SimpleStandardJobScheduler>(
                     new SimpleStandardJobScheduler(storage_service)),
-                          nullptr, compute_services, storage_services, wms_host));
+                          compute_services, storage_services, wms_host));
     wms->addWorkflow(workflow);
 
     if (use_cloud) {

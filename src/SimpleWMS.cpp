@@ -17,14 +17,10 @@ XBT_LOG_NEW_DEFAULT_CATEGORY(simple_wms, "Log category for Simple WMS");
 /**
  * @brief Create a Simple WMS with a workflow instance, a scheduler implementation, and a list of compute services
  */
-SimpleWMS::SimpleWMS(std::unique_ptr<wrench::StandardJobScheduler> standard_job_scheduler,
-                     std::unique_ptr<wrench::PilotJobScheduler> pilot_job_scheduler,
-                     std::unique_ptr<SimpleStandardJobScheduler> ss_job_scheduler,
+SimpleWMS::SimpleWMS(std::unique_ptr<SimpleStandardJobScheduler> ss_job_scheduler,
                      const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
                      const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
                      const std::string &hostname) : wrench::WMS(
-        std::move(standard_job_scheduler),
-        std::move(pilot_job_scheduler),
         std::move(ss_job_scheduler),
         compute_services,
         storage_services,
