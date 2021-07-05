@@ -46,6 +46,9 @@ int SimpleWMS::main() {
     // Create a job manager
     this->job_manager = this->createJobManager();
 
+    // pass job manager to scheduler
+    ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setJobManager(this->job_manager);
+
     // Create a data movement manager
     std::shared_ptr<wrench::DataMovementManager> data_movement_manager = this->createDataMovementManager();
 
