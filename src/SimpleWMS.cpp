@@ -21,12 +21,15 @@ SimpleWMS::SimpleWMS(std::unique_ptr<SimpleStandardJobScheduler> ss_job_schedule
                      const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
                      const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
                      const std::string &hostname) : wrench::WMS(
-        std::move(ss_job_scheduler),
+        nullptr,
+        nullptr,
         compute_services,
         storage_services,
         {}, nullptr,
         hostname,
-        "simple") {}
+        "simple") {
+    this->ss_job_scheduler = std::move(ss_job_scheduler);
+}
 
 /**
  * @brief main method of the SimpleWMS daemon
@@ -68,10 +71,10 @@ int SimpleWMS::main() {
 
     if (SimpleWMS::getNumVmInstances() > 0) {
         for (int i = 0; i < num_vm_instances; i++) {
-             cloud_vm.push_back(cloud_service->createVM(4, 500000));
-             // start vms and add the baremetal services from the vms to compute_services
-             // compute_services.insert(cloud_service->startVM(cloud_vm.at(i)));
-             vm_css.insert(cloud_service->startVM(cloud_vm.at(i)));
+            cloud_vm.push_back(cloud_service->createVM(4, 500000));
+            // start vms and add the baremetal services from the vms to compute_services
+            // compute_services.insert(cloud_service->startVM(cloud_vm.at(i)));
+            vm_css.insert(cloud_service->startVM(cloud_vm.at(i)));
         }
 
         ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setNumVmInstances(SimpleWMS::getNumVmInstances());
@@ -146,7 +149,7 @@ void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::Standa
         WRENCH_INFO(" - %s", task->getID().c_str());
         auto cs = ((SimpleStandardJobScheduler *) this->getStandardJobScheduler()) -> tasks_run_on.find(task)->second;
         ((SimpleStandardJobScheduler *) this->getStandardJobScheduler())
-        ->updateNumCoresAvailable(cs, task->getMinNumCores());
+                ->updateNumCoresAvailable(cs, task->getMinNumCores());
     }
 }
 
