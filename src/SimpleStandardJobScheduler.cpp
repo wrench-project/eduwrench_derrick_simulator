@@ -24,7 +24,7 @@ std::shared_ptr<wrench::JobManager> SimpleStandardJobScheduler::getJobManager() 
   * @param job_manager: a job manager
   */
 void SimpleStandardJobScheduler::setJobManager(std::shared_ptr<wrench::JobManager> job_manager) {
-    this->job_manager = job_manager;
+    this->job_manager = std::move(job_manager);
 }
 
 /**
@@ -209,7 +209,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::shared_ptr<wrench::Com
         }
 
         /* Create the job  */
-        auto standard_job = this->job_manager->createStandardJob(task, file_locations);
+        auto standard_job = getJobManager()->createStandardJob(task, file_locations);
 
         /* Submit the job to the compute service, using ONE core */
         WRENCH_INFO("Submitting the job to the compute service");
@@ -217,14 +217,14 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::shared_ptr<wrench::Com
         std::map<std::string, std::string> service_specific_argument;
         service_specific_argument[task->getID()] = std::to_string(task->getMinNumCores());
 
-        this->job_manager->submitJob(
+        getJobManager()->submitJob(
                 standard_job, selected_cs, service_specific_argument);
 
-        if (isCloudTask(task->getID())) {
-            // since bms are created in code, we need to tell the task which bms it ran on,
-            // instead of it just knowing it ran on the cloud
-            task->setExecutionHost(selected_cs->getName());
-        }
+//        if (isCloudTask(task->getID())) {
+//            // since bms are created in code, we need to tell the task which bms it ran on,
+//            // instead of it just knowing it ran on the cloud
+//            task->setExecutionHost(selected_cs->getName());
+//        }
         tasks_run_on.insert({task, selected_cs});
     }
     WRENCH_INFO("Done with scheduling tasks as standard jobs");
