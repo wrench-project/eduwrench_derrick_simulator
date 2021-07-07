@@ -90,8 +90,10 @@ int SimpleWMS::main() {
 
     }
 
+    std::set<std::shared_ptr<wrench::ComputeService>> all_bms = vm_css;
+    all_bms.insert(compute_service);
     // Set the num cores available for each compute service
-    this->ss_job_scheduler->createCoresTracker(compute_services);
+    this->ss_job_scheduler->createCoresTracker(all_bms);
 
     while (true) {
         // Get the ready tasks
