@@ -49,7 +49,7 @@ int SimpleWMS::main() {
     std::cerr << "begin of set job manager" << std::endl;
 
     // pass job manager to scheduler
-    ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setJobManager(this->job_manager);
+    this->ss_job_scheduler->setJobManager(this->job_manager);
 
     std::cerr << "end of set job manager" << std::endl;
 
@@ -84,20 +84,20 @@ int SimpleWMS::main() {
             vm_css.insert(cloud_service->startVM(cloud_vm.at(i)));
         }
 
-        ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setNumVmInstances(SimpleWMS::getNumVmInstances());
+        this->ss_job_scheduler->setNumVmInstances(SimpleWMS::getNumVmInstances());
         this->convertCloudTasks(cloud_tasks);
-        ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->setCloudTasks(cloud_tasks_set);
+        this->ss_job_scheduler->setCloudTasks(cloud_tasks_set);
 
     }
 
     // Set the num cores available for each compute service
-    ((SimpleStandardJobScheduler *) (this->getStandardJobScheduler()))->createCoresTracker(compute_services);
+    this->ss_job_scheduler->createCoresTracker(compute_services);
 
     while (true) {
         // Get the ready tasks
         std::vector<wrench::WorkflowTask *> ready_tasks = this->getWorkflow()->getReadyTasks();
 
-        ((SimpleStandardJobScheduler *)this->getStandardJobScheduler())->scheduleTasks(compute_service, vm_css, ready_tasks);
+        this->ss_job_scheduler->scheduleTasks(compute_service, vm_css, ready_tasks);
 
         // Wait for a workflow execution event, and process it
         try {
@@ -134,9 +134,8 @@ void SimpleWMS::processEventStandardJobFailure(std::shared_ptr<wrench::StandardJ
     WRENCH_INFO("As a result, the following tasks have failed:");
     for (auto const &task : job->getTasks()) {
         WRENCH_INFO(" - %s", task->getID().c_str());
-        auto cs = ((SimpleStandardJobScheduler *) this->getStandardJobScheduler()) -> tasks_run_on.find(task)->second;
-        ((SimpleStandardJobScheduler *) this->getStandardJobScheduler())
-                ->updateNumCoresAvailable(cs, task->getNumCoresAllocated());
+        auto cs = this->ss_job_scheduler->tasks_run_on.find(task)->second;
+        this->ss_job_scheduler->updateNumCoresAvailable(cs, task->getNumCoresAllocated());
     }
     throw std::runtime_error("A job failure has occurred... this should never happen!");
 }
@@ -154,9 +153,8 @@ void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::Standa
     WRENCH_INFO("As a result, the following tasks have completed:");
     for (auto const &task : job->getTasks()) {
         WRENCH_INFO(" - %s", task->getID().c_str());
-        auto cs = ((SimpleStandardJobScheduler *) this->getStandardJobScheduler()) -> tasks_run_on.find(task)->second;
-        ((SimpleStandardJobScheduler *) this->getStandardJobScheduler())
-                ->updateNumCoresAvailable(cs, task->getMinNumCores());
+        auto cs = this->ss_job_scheduler->tasks_run_on.find(task)->second;
+        this->ss_job_scheduler->updateNumCoresAvailable(cs, task->getMinNumCores());
     }
 }
 

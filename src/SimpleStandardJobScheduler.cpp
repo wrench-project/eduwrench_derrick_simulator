@@ -24,7 +24,7 @@ std::shared_ptr<wrench::JobManager> SimpleStandardJobScheduler::getJobManager() 
   * @param job_manager: a job manager
   */
 void SimpleStandardJobScheduler::setJobManager(std::shared_ptr<wrench::JobManager> job_manager) {
-    this->job_manager = std::move(job_manager);
+    this->job_manager = job_manager;
 }
 
 /**
@@ -209,7 +209,9 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::shared_ptr<wrench::Com
         }
 
         /* Create the job  */
-        auto standard_job = getJobManager()->createStandardJob(task, file_locations);
+        auto my_job_manager = this->job_manager;
+//        auto standard_job = this->getJobManager()->createStandardJob(task, file_locations);
+        auto standard_job = my_job_manager->createStandardJob(task, file_locations);
 
         /* Submit the job to the compute service, using ONE core */
         WRENCH_INFO("Submitting the job to the compute service");
