@@ -46,12 +46,8 @@ int ThrustDWMS::main() {
     // Create a job manager
     this->job_manager = this->createJobManager();
 
-    std::cerr << "begin of set job manager" << std::endl;
-
     // pass job manager to scheduler
     this->ss_job_scheduler->setJobManager(this->job_manager);
-
-    std::cerr << "end of set job manager" << std::endl;
 
     // Create a data movement manager
     std::shared_ptr<wrench::DataMovementManager> data_movement_manager = this->createDataMovementManager();
