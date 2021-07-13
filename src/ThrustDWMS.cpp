@@ -9,18 +9,18 @@
  */
 #include <iostream>
 
-#include "SimpleWMS.h"
-#include "SimpleStandardJobScheduler.h"
+#include "ThrustDWMS.h"
+#include "ThrustDJobScheduler.h"
 
 XBT_LOG_NEW_DEFAULT_CATEGORY(simple_wms, "Log category for Simple WMS");
 
 /**
  * @brief Create a Simple WMS with a workflow instance, a scheduler implementation, and a list of compute services
  */
-SimpleWMS::SimpleWMS(std::unique_ptr<SimpleStandardJobScheduler> ss_job_scheduler,
-                     const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
-                     const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
-                     const std::string &hostname) : wrench::WMS(
+ThrustDWMS::ThrustDWMS(std::unique_ptr<ThrustDJobScheduler> ss_job_scheduler,
+                       const std::set<std::shared_ptr<wrench::ComputeService>> &compute_services,
+                       const std::set<std::shared_ptr<wrench::StorageService>> &storage_services,
+                       const std::string &hostname) : wrench::WMS(
         nullptr,
         nullptr,
         compute_services,
@@ -32,9 +32,9 @@ SimpleWMS::SimpleWMS(std::unique_ptr<SimpleStandardJobScheduler> ss_job_schedule
 }
 
 /**
- * @brief main method of the SimpleWMS daemon
+ * @brief main method of the ThrustDWMS daemon
  */
-int SimpleWMS::main() {
+int ThrustDWMS::main() {
 
     wrench::TerminalOutput::setThisProcessLoggingColor(wrench::TerminalOutput::COLOR_GREEN);
 
@@ -76,7 +76,7 @@ int SimpleWMS::main() {
     vector<std::string> cloud_vm;
     std::set<std::shared_ptr<wrench::ComputeService>> vm_css;
 
-    if (SimpleWMS::getNumVmInstances() > 0) {
+    if (ThrustDWMS::getNumVmInstances() > 0) {
         for (int i = 0; i < num_vm_instances; i++) {
             cloud_vm.push_back(cloud_service->createVM(4, 500000));
             // start vms and add the baremetal services from the vms to compute_services
@@ -84,7 +84,7 @@ int SimpleWMS::main() {
             vm_css.insert(cloud_service->startVM(cloud_vm.at(i)));
         }
 
-        this->ss_job_scheduler->setNumVmInstances(SimpleWMS::getNumVmInstances());
+        this->ss_job_scheduler->setNumVmInstances(ThrustDWMS::getNumVmInstances());
         this->convertCloudTasks(cloud_tasks);
         this->ss_job_scheduler->setCloudTasks(cloud_tasks_set);
 
@@ -127,7 +127,7 @@ int SimpleWMS::main() {
  *
  * @param event: the event
  */
-void SimpleWMS::processEventStandardJobFailure(std::shared_ptr<wrench::StandardJobFailedEvent> event) {
+void ThrustDWMS::processEventStandardJobFailure(std::shared_ptr<wrench::StandardJobFailedEvent> event) {
     /* Retrieve the job that this event is for */
     auto job = event->standard_job;
     WRENCH_INFO("Notified that a standard job has failed (failure cause: %s)",
@@ -147,7 +147,7 @@ void SimpleWMS::processEventStandardJobFailure(std::shared_ptr<wrench::StandardJ
  *
  * @param event: the event
  */
-void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::StandardJobCompletedEvent> event) {
+void ThrustDWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::StandardJobCompletedEvent> event) {
     /* Retrieve the job that this event is for */
     auto job = event->standard_job;
     WRENCH_INFO("Notified that a standard job has successfully completed");
@@ -164,7 +164,7 @@ void SimpleWMS::processEventStandardJobCompletion(std::shared_ptr<wrench::Standa
  * @brief Method to get the number of vm instances
  * @return the number of vm instances
  */
-int SimpleWMS::getNumVmInstances() {
+int ThrustDWMS::getNumVmInstances() {
     return num_vm_instances;
 }
 
@@ -173,7 +173,7 @@ int SimpleWMS::getNumVmInstances() {
  *
  * @param num_vm_instances: number of vm instances to set
  */
-void SimpleWMS::setNumVmInstances(int num_vm_instances) {
+void ThrustDWMS::setNumVmInstances(int num_vm_instances) {
     this->num_vm_instances = num_vm_instances;
 }
 
@@ -182,7 +182,7 @@ void SimpleWMS::setNumVmInstances(int num_vm_instances) {
  *
  * @param tasks: string of cloud vm tasks
  */
-void SimpleWMS::convertCloudTasks(std::string tasks) {
+void ThrustDWMS::convertCloudTasks(std::string tasks) {
     stringstream ss(tasks);
     while (ss.good()) {
         string substr;
@@ -196,6 +196,6 @@ void SimpleWMS::convertCloudTasks(std::string tasks) {
  *
  * @param tasks: string of cloud vm tasks
  */
-void SimpleWMS::setCloudTasks(std::string tasks) {
+void ThrustDWMS::setCloudTasks(std::string tasks) {
     cloud_tasks = tasks;
 }

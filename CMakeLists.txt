@@ -16,11 +16,11 @@ include_directories(src/ ${SimGrid_INCLUDE_DIR}/include /usr/local/include /opt/
 
 # source files
 set(SOURCE_FILES
-       src/SimpleWMS.h
-       src/SimpleWMS.cpp
-       src/SimpleStandardJobScheduler.h
-       src/SimpleStandardJobScheduler.cpp
-       src/SimpleSimulator.cpp
+        src/ThrustDWMS.h
+        src/ThrustDWMS.cpp
+        src/ThrustDJobScheduler.h
+        src/ThrustDJobScheduler.cpp
+        src/ThrustDSimulator.cpp
        )
 
 # test files
@@ -34,17 +34,17 @@ find_library(PUGIXML_LIBRARY NAMES pugixml)
 find_library(GTEST_LIBRARY NAMES gtest)
 
 # generating the executable
-add_executable(simulator ${SOURCE_FILES})
+add_executable(thrustd ${SOURCE_FILES})
 
 if (ENABLE_BATSCHED)
-target_link_libraries(simulator
+target_link_libraries(thrustd
                        ${WRENCH_LIBRARY}
                        ${WRENCH_PEGASUS_WORKFLOW_PARSER_LIBRARY}
                        ${SimGrid_LIBRARY}
                        ${PUGIXML_LIBRARY}
                       -lzmq )
 else()
-target_link_libraries(simulator
+target_link_libraries(thrustd
                        ${WRENCH_LIBRARY}
                        ${WRENCH_PEGASUS_WORKFLOW_PARSER_LIBRARY}
                        ${SimGrid_LIBRARY}
@@ -52,7 +52,7 @@ target_link_libraries(simulator
                       )
 endif()
 
-install(TARGETS simulator DESTINATION bin)
+install(TARGETS thrustd DESTINATION bin)
 
 # generating unit tests
 add_executable(unit_tests EXCLUDE_FROM_ALL

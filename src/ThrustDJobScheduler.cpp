@@ -7,7 +7,7 @@
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-#include "SimpleStandardJobScheduler.h"
+#include "ThrustDJobScheduler.h"
 
 XBT_LOG_NEW_DEFAULT_CATEGORY(simple_scheduler, "Log category for Simple Scheduler");
 
@@ -15,7 +15,7 @@ XBT_LOG_NEW_DEFAULT_CATEGORY(simple_scheduler, "Log category for Simple Schedule
   * @brief Get a reference to the job manager to be used by this scheduler (nullptr: none is used)
   * @return a job manager
   */
-std::shared_ptr<wrench::JobManager> SimpleStandardJobScheduler::getJobManager() {
+std::shared_ptr<wrench::JobManager> ThrustDJobScheduler::getJobManager() {
     return this->job_manager;
 }
 
@@ -23,7 +23,7 @@ std::shared_ptr<wrench::JobManager> SimpleStandardJobScheduler::getJobManager() 
   * @brief Set a reference to the job manager to be used by this scheduler (nullptr: none is used)
   * @param job_manager: a job manager
   */
-void SimpleStandardJobScheduler::setJobManager(std::shared_ptr<wrench::JobManager> job_manager) {
+void ThrustDJobScheduler::setJobManager(std::shared_ptr<wrench::JobManager> job_manager) {
     this->job_manager = job_manager;
 }
 
@@ -31,7 +31,7 @@ void SimpleStandardJobScheduler::setJobManager(std::shared_ptr<wrench::JobManage
  * @brief Method to get the number of vm instances
  * @return the number of vm instances
  */
-int SimpleStandardJobScheduler::getNumVmInstances() {
+int ThrustDJobScheduler::getNumVmInstances() {
     return num_vm_instances;
 }
 
@@ -40,7 +40,7 @@ int SimpleStandardJobScheduler::getNumVmInstances() {
  *
  * @param num_vm_instances: number of vm instances to set
  */
-void SimpleStandardJobScheduler::setNumVmInstances(int num_vm_instances) {
+void ThrustDJobScheduler::setNumVmInstances(int num_vm_instances) {
     this->num_vm_instances = num_vm_instances;
 }
 
@@ -49,7 +49,7 @@ void SimpleStandardJobScheduler::setNumVmInstances(int num_vm_instances) {
  * @param task_id: task name
  * @return true if task_id is a cloud task, false if not
  */
-bool SimpleStandardJobScheduler::isCloudTask(std::string task_id) {
+bool ThrustDJobScheduler::isCloudTask(std::string task_id) {
     return (this->cloud_tasks_set.find(task_id) != this->cloud_tasks_set.end());
 }
 
@@ -58,7 +58,7 @@ bool SimpleStandardJobScheduler::isCloudTask(std::string task_id) {
  *
  * @param cloud_tasks_set: set of cloud tasks
  */
-void SimpleStandardJobScheduler::setCloudTasks(std::set<std::string> cloud_tasks_set) {
+void ThrustDJobScheduler::setCloudTasks(std::set<std::string> cloud_tasks_set) {
     this->cloud_tasks_set = cloud_tasks_set;
 }
 
@@ -67,7 +67,7 @@ void SimpleStandardJobScheduler::setCloudTasks(std::set<std::string> cloud_tasks
  * @param cs: the compute service to find
  * @param increment: positive or negative increment
  */
-void SimpleStandardJobScheduler::updateNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> cs, long increment) {
+void ThrustDJobScheduler::updateNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> cs, long increment) {
     this->numCoresAvailable.find(cs)->second += increment;
 }
 
@@ -76,7 +76,7 @@ void SimpleStandardJobScheduler::updateNumCoresAvailable(std::shared_ptr<wrench:
  * @param cs: the compute service to find
  * @return a number of cores
  */
-unsigned long SimpleStandardJobScheduler::getNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> cs) {
+unsigned long ThrustDJobScheduler::getNumCoresAvailable(std::shared_ptr<wrench::BareMetalComputeService> cs) {
     return this->numCoresAvailable.find(cs)->second;
 }
 
@@ -85,7 +85,7 @@ unsigned long SimpleStandardJobScheduler::getNumCoresAvailable(std::shared_ptr<w
  *
  * @param compute_services: the set of compute services
  */
-void SimpleStandardJobScheduler::createCoresTracker(std::set<std::shared_ptr<wrench::ComputeService>> &compute_services) {
+void ThrustDJobScheduler::createCoresTracker(std::set<std::shared_ptr<wrench::ComputeService>> &compute_services) {
     for (auto const &cs : compute_services) {
         this->numCoresAvailable.insert({std::dynamic_pointer_cast<wrench::BareMetalComputeService>(cs),
                 cs->getTotalNumCores()});
@@ -100,9 +100,9 @@ void SimpleStandardJobScheduler::createCoresTracker(std::set<std::shared_ptr<wre
  *
  * @throw std::runtime_error
  */
-void SimpleStandardJobScheduler::scheduleTasks(const std::shared_ptr<wrench::ComputeService> &local_cs,
-                                               const std::set<std::shared_ptr<wrench::ComputeService>> &vm_created_cs,
-                                               const std::vector<wrench::WorkflowTask *> &tasks) {
+void ThrustDJobScheduler::scheduleTasks(const std::shared_ptr<wrench::ComputeService> &local_cs,
+                                        const std::set<std::shared_ptr<wrench::ComputeService>> &vm_created_cs,
+                                        const std::vector<wrench::WorkflowTask *> &tasks) {
 
     // Check that the at least one compute_services is passed
     if (local_cs == nullptr) {
@@ -134,7 +134,7 @@ void SimpleStandardJobScheduler::scheduleTasks(const std::shared_ptr<wrench::Com
     }
 //    vm_css.erase(local_cluster_cs);
 
-//    if (SimpleStandardJobScheduler::getNumVmInstances() > 0) {
+//    if (ThrustDJobScheduler::getNumVmInstances() > 0) {
 //        // check for the vm created bare metal services
 //        for (int k = 1; k < compute_services.size(); k++) {
 //            auto compute_service = cs_vector.at(k);

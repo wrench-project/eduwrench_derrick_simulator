@@ -8,8 +8,8 @@
  * (at your option) any later version.
  */
 #include <wrench.h>
-#include "SimpleStandardJobScheduler.h"
-#include "SimpleWMS.h"
+#include "ThrustDJobScheduler.h"
+#include "ThrustDWMS.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <chrono>
@@ -271,9 +271,9 @@ int main(int argc, char **argv) {
 
     // Instantiate a WMS
     auto wms = simulation.add(
-            new SimpleWMS(std::unique_ptr<SimpleStandardJobScheduler>(
-                    new SimpleStandardJobScheduler(storage_service)),
-                          compute_services, storage_services, wms_host));
+            new ThrustDWMS(std::unique_ptr<ThrustDJobScheduler>(
+                    new ThrustDJobScheduler(storage_service)),
+                           compute_services, storage_services, wms_host));
     wms->addWorkflow(workflow);
 
     if (use_cloud) {

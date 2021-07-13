@@ -11,12 +11,12 @@
 #define MY_SIMPLESCHEDULER_H
 
 #include <wrench-dev.h>
-//#include "SimpleWMS.h"
+//#include "ThrustDWMS.h"
 
-class SimpleStandardJobScheduler {
+class ThrustDJobScheduler {
 
 public:
-  SimpleStandardJobScheduler(std::shared_ptr<wrench::StorageService> default_storage_service) :
+  ThrustDJobScheduler(std::shared_ptr<wrench::StorageService> default_storage_service) :
           default_storage_service(default_storage_service) {}
 
   void scheduleTasks(const std::shared_ptr<wrench::ComputeService> &local_cs,
